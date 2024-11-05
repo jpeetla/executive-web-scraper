@@ -1,4 +1,4 @@
-# Job Scraper API
+# Company Executive Scraper API
 
 A robust web scraper API for detecting job postings on company websites. This service crawls websites to find career pages and job listings, using AI to extract structured job posting data.
 
