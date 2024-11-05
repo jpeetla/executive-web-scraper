@@ -22,7 +22,7 @@ class Parser {
                 model: "gpt-3.5-turbo",
                 messages: [{
                         role: "system",
-                        content: "Extract job postings and return them in JSON format. Return only valid job postings with clear titles."
+                        content: "If there are job postings, extract them and return them in JSON format. Return only valid job postings with clear titles. Otherwise, return an empty array."
                     }, {
                         role: "user",
                         content: this.createFocusedPrompt(processedContent, url)

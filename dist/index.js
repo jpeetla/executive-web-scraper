@@ -4,12 +4,14 @@ const batchProcessor_1 = require("./services/batchProcessor");
 const analyzer_1 = require("./services/analyzer");
 const file_utils_1 = require("./utils/file-utils");
 const websites = [
-    'https://www.acclinate.com/',
+    // 'https://www.adroit-tt.com/',
+    // 'https://www.acclinate.com/',
     // 'https://adhdonline.com/',
     // 'https://www.adaptx.com/careers',
     // 'https://jobs.lever.co/WisprAI',
     // 'https://www.amidetech.com/',
     // 'https://www.replo.app/'
+    'https://www.intro.co/'
 ];
 (0, batchProcessor_1.processWebsites)(websites)
     .then(async (results) => {

@@ -1,111 +1,57 @@
 [
   {
-    "website": "https://www.adroit-tt.com/",
+    "website": "https://www.intro.co/",
     "hasJobs": true,
     "jobPostings": [
       {
-        "title": "Software Engineers",
-        "location": "Not specified",
-        "department": "Development",
-        "description": "You'll be a contributor to all levels of our software design and development. You'll interface directly with senior managers (CTO and Development Managers) and at times with our clients to understand the problem and build elegant solutions. You'll work on feature development, testing, bug fixing, maintenance, and support.",
-        "url": "recruitingadroit-tt.com"
+        "title": "Android Engineer",
+        "location": "Los Angeles, CA",
+        "department": "Engineering",
+        "description": "Intro is looking for an Android Engineer to join our team in Los Angeles, CA.",
+        "url": "https://intro.applytojob.com/apply/abc123/android-engineer"
       },
       {
-        "title": "Sr Dev Backend Architect",
-        "location": "Not specified",
-        "department": "Development",
-        "description": "You have experience developing and architecting multi-tenant, cloud-based B2B applications. You have worked on real-time, distributed, messaging-based systems, and are still hands-on in those areas. You deeply understand the security and performance designs for a system with a large user base hitting both an API and web front-end end-points, with client updates needed in real-time at very low latency.",
-        "url": "recruitingadroit-tt.com"
+        "title": "Backend Engineer",
+        "location": "Los Angeles, CA",
+        "department": "Engineering",
+        "description": "Intro is seeking a Backend Engineer to work in Los Angeles, CA.",
+        "url": "https://intro.applytojob.com/apply/def456/backend-engineer"
       },
       {
-        "title": "Software Engineer (FIX-Protocol Specialist)",
-        "location": "Not specified",
-        "department": "Development",
-        "description": "You have experience working in the financial industry, with extensive focus on writing code to interact with external platforms via the Financial Information eXchange (FIX) protocol. You are excited about expanding our products coverage with external venues and coordinating with providers to manage working relationships.",
-        "url": "recruitingadroit-tt.com"
-      }
-    ]
-  },
-  {
-    "website": "https://www.acclinate.com/",
-    "hasJobs": true,
-    "jobPostings": [
-      {
-        "title": "Clinical Research Coordinator",
-        "location": "Birmingham, AL",
-        "department": "Clinical Operations",
-        "description": "We are seeking a Clinical Research Coordinator to join our team in Birmingham, AL. The ideal candidate will have experience in coordinating clinical trials and managing study protocols.",
-        "url": "https://www.acclinate.com/careers/clinical-research-coordinator"
+        "title": "iOS Engineer",
+        "location": "Los Angeles, CA",
+        "department": "Engineering",
+        "description": "Intro is hiring an iOS Engineer for our team in Los Angeles, CA.",
+        "url": "https://intro.applytojob.com/apply/ghi789/ios-engineer"
       },
       {
-        "title": "Data Scientist",
-        "location": "Remote",
-        "department": "Data Science",
-        "description": "We are looking for a Data Scientist to work remotely with our team. The candidate should have a strong background in data analysis and machine learning.",
-        "url": "https://www.acclinate.com/careers/data-scientist"
-      }
-    ]
-  },
-  {
-    "website": "https://adhdonline.com/",
-    "hasJobs": false,
-    "jobPostings": []
-  },
-  {
-    "website": "https://www.adaptx.com/careers",
-    "hasJobs": false,
-    "jobPostings": []
-  },
-  {
-    "website": "https://jobs.lever.co/WisprAI",
-    "hasJobs": true,
-    "jobPostings": [
-      {
-        "title": "Founding Software Engineer",
-        "location": "San Francisco",
-        "department": "Software",
-        "description": "Hybrid Full Time",
-        "url": "https://jobs.lever.co/WisprAI/founding-software-engineer"
+        "title": "Content Marketing Manager",
+        "location": "Los Angeles, CA",
+        "department": "Marketing",
+        "description": "Intro is looking for a Content Marketing Manager in Los Angeles, CA.",
+        "url": "https://intro.applytojob.com/apply/jkl012/content-marketing-manager"
       },
       {
-        "title": "Senior Software Engineer",
-        "location": "San Francisco",
-        "department": "Software",
-        "description": "Hybrid Full Time",
-        "url": "https://jobs.lever.co/WisprAI/senior-software-engineer"
-      }
-    ]
-  },
-  {
-    "website": "https://www.amidetech.com/",
-    "hasJobs": true,
-    "jobPostings": [
-      {
-        "title": "Scientist, Protein Chemistry R&D",
-        "location": "Cambridge, MA",
-        "department": "Research and Development",
-        "description": "Apply for the Scientist, Protein Chemistry R&D position at Amide.",
-        "url": "https://www.amidetech.com/careers/"
+        "title": "Head of Growth Marketing",
+        "location": "Los Angeles, CA",
+        "department": "Marketing",
+        "description": "Intro is seeking a Head of Growth Marketing in Los Angeles, CA.",
+        "url": "https://intro.applytojob.com/apply/mno345/head-of-growth-marketing"
       },
       {
-        "title": "Research Associate - Peptide Chemistry R&D",
-        "location": "Cambridge, MA",
-        "department": "Research and Development",
-        "description": "Apply for the Research Associate - Peptide Chemistry R&D position at Amide.",
-        "url": "https://www.amidetech.com/careers/"
+        "title": "Product Designer",
+        "location": "Los Angeles, CA",
+        "department": "Product",
+        "description": "Intro is hiring a Product Designer in Los Angeles, CA.",
+        "url": "https://intro.applytojob.com/apply/pqr678/product-designer"
       },
       {
-        "title": "Sales Director",
-        "location": "Cambridge, MA",
+        "title": "Account Manager",
+        "location": "Los Angeles, CA",
         "department": "Sales",
-        "description": "Apply for the Sales Director position at Amide.",
-        "url": "https://www.amidetech.com/careers/"
+        "description": "Intro is looking for an Account Manager in Los Angeles, CA.",
+        "url": "https://intro.applytojob.com/apply/stu901/account-manager"
       }
     ]
-  },
-  {
-    "website": "https://www.replo.app/",
-    "hasJobs": false,
-    "jobPostings": []
   }
 ]

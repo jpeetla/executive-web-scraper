@@ -54,6 +54,23 @@ class Crawler {
                     error: 'Scraping not allowed by robots.txt'
                 };
             }
+            // First try direct /careers path
+            try {
+                const careersUrl = new URL('/careers', normalizedUrl).toString();
+                const response = await this.httpClient.get(careersUrl);
+                if (response.status === 200) {
+                    logger_1.Logger.info(`Found direct careers path: ${careersUrl}`);
+                    return {
+                        website: url,
+                        hasJobs: true,
+                        jobPostings: await this.crawl(careersUrl, 1)
+                    };
+                }
+            }
+            catch (error) {
+                logger_1.Logger.debug(`No direct /careers path found for ${normalizedUrl}`);
+            }
+            // If no direct careers path, try to find careers link on homepage
             const jobPostings = await this.crawl(normalizedUrl, 0);
             return {
                 website: url,
@@ -80,8 +97,15 @@ class Crawler {
         try {
             const html = await this.httpClient.get(url);
             const $ = cheerio.load(html.data);
-            // If this is the initial page, look for career-related links
+            // If this is the initial page, ONLY look for primary career link
             if (depth === 0) {
+                const primaryCareerLink = this.findPrimaryCareerLink($, url);
+                if (primaryCareerLink) {
+                    logger_1.Logger.info(`Found primary career link: ${primaryCareerLink}`);
+                    return await this.crawl(primaryCareerLink, 1);
+                }
+                // ONLY if no primary career link found, fall back to broader search
+                logger_1.Logger.info('No primary career link found, searching for alternative career links');
                 const careerLinks = this.findCareerLinks($, url);
                 logger_1.Logger.info(`Found ${careerLinks.length} career-related links on ${url}`);
                 const results = await this.crawlConcurrently(careerLinks);
@@ -117,12 +141,37 @@ class Crawler {
             return [];
         }
     }
+    // New helper method to find primary career link
+    findPrimaryCareerLink($, url) {
+        const PRIMARY_KEYWORDS = ['careers', 'jobs', 'join us', 'work with us'];
+        for (const keyword of PRIMARY_KEYWORDS) {
+            const $link = $(`a:contains("${keyword}")`).first();
+            const href = $link.attr('href');
+            if (href) {
+                try {
+                    return new URL(href, url).toString();
+                }
+                catch (error) {
+                    logger_1.Logger.warn(`Invalid primary career link URL: ${href}`);
+                }
+            }
+        }
+        return null;
+    }
     findJobListingLinks($, baseUrl) {
         const jobListingIndicators = [
-            'current openings', 'open positions', 'job openings',
-            'available positions', 'job listings', 'current opportunities',
-            'career opportunities', 'current vacancies', 'available roles',
-            'view jobs', 'see jobs', 'browse jobs', 'all jobs'
+            'view openings',
+            'view open positions',
+            'view positions',
+            'view jobs',
+            'see jobs',
+            'browse jobs',
+            'view all jobs',
+            'view opportunities',
+            'see open positions',
+            'current openings',
+            'open positions',
+            'job openings'
         ];
         const links = new Set();
         // Find links containing job listing indicators
@@ -132,25 +181,12 @@ class Crawler {
             const text = $link.text().toLowerCase().trim();
             if (!href)
                 return;
-            // Check if link text contains any job listing indicators
+            // Case insensitive check for any of the indicators
             const hasIndicator = jobListingIndicators.some(indicator => text.includes(indicator.toLowerCase()));
             if (hasIndicator) {
                 try {
                     const fullUrl = new URL(href, baseUrl).toString();
                     logger_1.Logger.info(`Found job listing link: "${text}" -> ${fullUrl}`);
-                    links.add(fullUrl);
-                }
-                catch (error) {
-                    logger_1.Logger.warn(`Invalid URL: ${href}`);
-                }
-            }
-        });
-        // Also check for links with job-related paths
-        $('a[href*="jobs"], a[href*="positions"], a[href*="openings"], a[href*="careers"]').each((_, element) => {
-            const href = $(element).attr('href');
-            if (href) {
-                try {
-                    const fullUrl = new URL(href, baseUrl).toString();
                     links.add(fullUrl);
                 }
                 catch (error) {

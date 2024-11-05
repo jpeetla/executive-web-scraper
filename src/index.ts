@@ -3,13 +3,14 @@ import { analyzeResults } from './services/analyzer';
 import { writeJsonToFile } from './utils/file-utils';
 
 const websites = [
-    'https://www.adroit-tt.com/',
-    'https://www.acclinate.com/',
-    'https://adhdonline.com/',
-    'https://www.adaptx.com/careers',
-    'https://jobs.lever.co/WisprAI',
-    'https://www.amidetech.com/',
-    'https://www.replo.app/'
+    // 'https://www.adroit-tt.com/',
+    // 'https://www.acclinate.com/',
+    // 'https://adhdonline.com/',
+    // 'https://www.adaptx.com/careers',
+    // 'https://jobs.lever.co/WisprAI',
+    // 'https://www.amidetech.com/',
+    // 'https://www.replo.app/'
+    'https://www.intro.co/'
     ];
 
 processWebsites(websites)

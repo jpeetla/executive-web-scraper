@@ -7,6 +7,7 @@ export declare class Crawler {
     constructor(options?: CrawlerOptions);
     scrape(url: string): Promise<ScrapingResult>;
     private crawl;
+    private findPrimaryCareerLink;
     private findJobListingLinks;
     private extractJobContent;
     private findCareerLinks;

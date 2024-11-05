@@ -414,5 +414,57 @@
     "urlsWithJobs": 4,
     "urlsWithoutJobs": 0,
     "timestamp": "2024-10-30T03:20:08.023Z"
+  },
+  {
+    "startTime": 1730788716488,
+    "endTime": 1730788732365,
+    "totalDuration": 15877,
+    "totalUrlsProcessed": 1,
+    "successfulScrapes": 1,
+    "failedScrapes": 0,
+    "averageTimePerUrl": 15877,
+    "totalJobsFound": 2,
+    "urlsWithJobs": 1,
+    "urlsWithoutJobs": 0,
+    "timestamp": "2024-11-05T06:38:36.488Z"
+  },
+  {
+    "startTime": 1730788856031,
+    "endTime": 1730788858283,
+    "totalDuration": 2252,
+    "totalUrlsProcessed": 1,
+    "successfulScrapes": 1,
+    "failedScrapes": 0,
+    "averageTimePerUrl": 2252,
+    "totalJobsFound": 0,
+    "urlsWithJobs": 0,
+    "urlsWithoutJobs": 1,
+    "timestamp": "2024-11-05T06:40:56.031Z"
+  },
+  {
+    "startTime": 1730788954901,
+    "endTime": 1730788957085,
+    "totalDuration": 2184,
+    "totalUrlsProcessed": 1,
+    "successfulScrapes": 1,
+    "failedScrapes": 0,
+    "averageTimePerUrl": 2184,
+    "totalJobsFound": 0,
+    "urlsWithJobs": 0,
+    "urlsWithoutJobs": 1,
+    "timestamp": "2024-11-05T06:42:34.901Z"
+  },
+  {
+    "startTime": 1730788967968,
+    "endTime": 1730788977252,
+    "totalDuration": 9284,
+    "totalUrlsProcessed": 1,
+    "successfulScrapes": 1,
+    "failedScrapes": 0,
+    "averageTimePerUrl": 9284,
+    "totalJobsFound": 7,
+    "urlsWithJobs": 1,
+    "urlsWithoutJobs": 0,
+    "timestamp": "2024-11-05T06:42:47.968Z"
   }
 ]
