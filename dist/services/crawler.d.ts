@@ -5,12 +5,6 @@ export declare class Crawler {
     private processedDomains;
     private options;
     constructor(options?: CrawlerOptions);
-    scrape(url: string): Promise<ScrapingResult>;
+    scrape(company_name: string): Promise<ScrapingResult>;
     private crawl;
-    private findPrimaryCareerLink;
-    private findJobListingLinks;
-    private extractJobContent;
-    private findCareerLinks;
-    private crawlConcurrently;
-    private waitForContent;
 }

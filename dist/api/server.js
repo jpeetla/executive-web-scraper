@@ -15,11 +15,11 @@ app.get('/health', (req, res) => {
 // Single website scraping endpoint
 app.post('/scrape', async (req, res) => {
     try {
-        const { url } = req.body;
-        if (!url) {
+        const { company_name } = req.body;
+        if (!company_name) {
             return res.status(400).json({ error: 'URL is required' });
         }
-        const result = await crawler.scrape(url);
+        const result = await crawler.scrape(company_name);
         res.json(result);
     }
     catch (error) {

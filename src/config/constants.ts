@@ -26,11 +26,11 @@ export const MAX_DEPTH = 2;
 
 export const USER_AGENT = 'Mozilla/5.0 (compatible; JobScraperBot/1.0; +http://example.com/bot)';
 
-export const COMMON_JOB_TITLES = [
-  'engineer', 'developer', 'manager', 'director', 'analyst', 'designer',
-  'coordinator', 'specialist', 'consultant', 'administrator', 'architect',
-  'scientist', 'researcher', 'technician', 'lead', 'head of', 'vp', 'chief',
-  'officer', 'associate', 'assistant', 'intern'
+export const COMMON_EXECUTIVE_KEYWORDS = [
+  'CEO', 'Manager', 'Director', 'CTO', ,
+  'Lead', 'CFO', 'COO', 'Chief People Officer', 'VP of Talent Acquisition',
+  'VP of People', 'Chief of Staff', 'Head of Talent Acquisition,', 'Head of People', 'VP of Engineering', 'VP of Operations', 'Director of Engineering',
+  'Recruiter', 'associate', 'assistant', 'intern'
 ];
 
 export const EMPLOYMENT_TYPES = [
@@ -42,3 +42,4 @@ export const EXPERIENCE_LEVELS = [
   'entry level', 'junior', 'mid-level', 'senior', 'principal', 'staff',
   'executive', 'lead'
 ];
+
