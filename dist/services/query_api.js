@@ -9,7 +9,7 @@ const logger_1 = require("../utils/logger");
 const constants_1 = require("../config/constants");
 const openai_1 = require("openai");
 async function querySerpApi(companyName) {
-    const apiKey = "0fe2bae7badde0df4430892bba286f6394526f0d52f3e539be9b16c1340f6c14";
+    const apiKey = process.env.SERP_API_KEY;
     const params = {
         q: `${companyName} leadership team OR board of directors OR executive profiles`,
         location: "Austin, Texas, United States",
@@ -34,7 +34,7 @@ async function querySerpApi(companyName) {
 exports.querySerpApi = querySerpApi;
 async function queryChat(content, url) {
     try {
-        const openai = new openai_1.OpenAI({ apiKey: "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" });
+        const openai = new openai_1.OpenAI({ apiKey: process.env.OPENAI_API_KEY });
         const processedContent = prepareContentForLLM(content);
         logger_1.Logger.info(`Sending ${processedContent.length} characters to LLM for ${url}`);
         const response = await openai.chat.completions.create({

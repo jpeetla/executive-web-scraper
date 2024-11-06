@@ -27,6 +27,7 @@ export class Crawler {
       //WATERFALL STEP #1
 
       //Call SERP API to find list of urls
+      // const normalizedUrl = UrlUtils.normalizeUrl(url);
       const urls = await querySerpApi(company_name);
       console.log('Top 3 URLs:', urls);
 
@@ -75,47 +76,6 @@ export class Crawler {
       
       //Call Apollo API
 
-      
-
-    //   const normalizedUrl = UrlUtils.normalizeUrl(url);
-      
-    //   //
-      
-    //   // Check robots.txt
-    //   const isAllowed = await this.httpClient.checkRobotsTxt(normalizedUrl);
-    //   if (!isAllowed) {
-    //     return {
-    //       website: url,
-    //       hasJobs: false,
-    //       jobPostings: [],
-    //       error: 'Scraping not allowed by robots.txt'
-    //     };
-    //   }
-
-    //   // First try direct /careers path
-    //   try {
-    //     const careersUrl = new URL('/careers', normalizedUrl).toString();
-    //     const response = await this.httpClient.get(careersUrl);
-    //     if (response.status === 200) {
-    //       Logger.info(`Found direct careers path: ${careersUrl}`);
-    //       return {
-    //         website: url,
-    //         hasJobs: true,
-    //         jobPostings: await this.crawl(careersUrl, 1)
-    //       };
-    //     }
-    //   } catch (error) {
-    //     Logger.debug(`No direct /careers path found for ${normalizedUrl}`);
-    //   }
-
-    //   // If no direct careers path, try to find careers link on homepage
-    //   const jobPostings = await this.crawl(normalizedUrl, 0);
-      
-    //   return {
-    //     website: url,
-    //     hasJobs: jobPostings.length > 0,
-    //     jobPostings
-    //   };
     } catch (error) {
       Logger.error('Error during scraping', error as Error);
       return {
@@ -126,9 +86,4 @@ export class Crawler {
       };
     }
   }
-
-  private async crawl(url: string, depth: number): Promise<JobPosting[]> {
-    return [];
-  }
-
 } 

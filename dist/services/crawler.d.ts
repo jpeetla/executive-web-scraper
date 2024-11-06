@@ -6,5 +6,4 @@ export declare class Crawler {
     private options;
     constructor(options?: CrawlerOptions);
     scrape(company_name: string): Promise<ScrapingResult>;
-    private crawl;
 }

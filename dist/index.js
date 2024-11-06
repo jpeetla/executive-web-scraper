@@ -1,24 +1,23 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const batchProcessor_1 = require("./services/batchProcessor");
-const analyzer_1 = require("./services/analyzer");
-const file_utils_1 = require("./utils/file-utils");
-const websites = [
-    // 'https://www.adroit-tt.com/',
-    // 'https://www.acclinate.com/',
-    // 'https://adhdonline.com/',
-    // 'https://www.adaptx.com/careers',
-    // 'https://jobs.lever.co/WisprAI',
-    // 'https://www.amidetech.com/',
-    // 'https://www.replo.app/'
-    'https://www.intro.co/'
-];
-(0, batchProcessor_1.processWebsites)(websites)
-    .then(async (results) => {
-    (0, analyzer_1.analyzeResults)(results);
-    await (0, file_utils_1.writeJsonToFile)(results, './scraping_results.json');
-    console.log('Batch processing complete.');
-})
-    .catch(error => {
-    console.error('Error during batch processing:', error.message);
-});
+const crawler_1 = require("./services/crawler"); // Adjust the path as needed
+const logger_1 = require("./utils/logger");
+// Set up an async function to run the crawler
+async function main() {
+    try {
+        const crawler = new crawler_1.Crawler({
+            maxDepth: 2,
+            timeout: 10000,
+            maxConcurrentRequests: 5,
+        });
+        const companyName = "Accompany Health"; // Replace this with the company name you want to scrape
+        const result = await crawler.scrape(companyName);
+        // Log the result
+        console.log("Scraping result:", result);
+    }
+    catch (error) {
+        logger_1.Logger.error("Error in main execution", error);
+    }
+}
+// Execute the main function
+main();
