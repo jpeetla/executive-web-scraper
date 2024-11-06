@@ -1,24 +1,28 @@
-import { Crawler } from './services/crawler'; // Adjust the path as needed
+import { Crawler } from './services/crawler';
 import { Logger } from './utils/logger';
 
-// Set up an async function to run the crawler
-async function main() {
+export async function handler(event: any) {
+  const companyName = event.queryStringParameters?.companyName || "Default Company";
+  
   try {
     const crawler = new Crawler({
-      maxDepth: 2, // Set your desired options here or leave empty to use defaults
+      maxDepth: 2,
       timeout: 10000,
       maxConcurrentRequests: 5,
     });
 
-    const companyName = process.argv[2]; // Replace this with the company name you want to scrape
     const result = await crawler.scrape(companyName);
-
-    // Log the result
     console.log("Scraping result:", result);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(result),
+    };
   } catch (error) {
     Logger.error("Error in main execution", error as Error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "An error occurred during scraping" }),
+    };
   }
 }
-
-// Execute the main function
-main();

@@ -1,23 +1,29 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const crawler_1 = require("./services/crawler"); // Adjust the path as needed
+exports.handler = void 0;
+const crawler_1 = require("./services/crawler");
 const logger_1 = require("./utils/logger");
-// Set up an async function to run the crawler
-async function main() {
+async function handler(event) {
+    const companyName = event.queryStringParameters?.companyName || "Default Company";
     try {
         const crawler = new crawler_1.Crawler({
             maxDepth: 2,
             timeout: 10000,
             maxConcurrentRequests: 5,
         });
-        const companyName = "Accompany Health"; // Replace this with the company name you want to scrape
         const result = await crawler.scrape(companyName);
-        // Log the result
         console.log("Scraping result:", result);
+        return {
+            statusCode: 200,
+            body: JSON.stringify(result),
+        };
     }
     catch (error) {
         logger_1.Logger.error("Error in main execution", error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: "An error occurred during scraping" }),
+        };
     }
 }
-// Execute the main function
-main();
+exports.handler = handler;
