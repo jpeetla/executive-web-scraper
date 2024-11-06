@@ -14,12 +14,12 @@ export interface JobPosting {
   isRemote?: boolean;
 }
 
-export interface ScrapingResult {
-  website: string;
-  hasJobs: boolean;
-  jobPostings: JobPosting[];
-  error?: string;
-}
+// export interface ScrapingResult {
+//   website: string;
+//   hasJobs: boolean;
+//   jobPostings: JobPosting[];
+//   error?: string;
+// }
 
 export interface CrawlerOptions {
   maxDepth?: number;

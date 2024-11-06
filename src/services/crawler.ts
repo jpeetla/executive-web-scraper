@@ -1,6 +1,6 @@
 import { HttpClient } from './http-client';
 import { Logger } from '../utils/logger';
-import { ScrapingResult, CrawlerOptions, JobPosting } from '../types';
+import { CrawlerOptions, JobPosting } from '../types';
 import { MAX_DEPTH, MAX_CONCURRENT_REQUESTS } from '../config/constants';
 import * as cheerio from 'cheerio';
 import MetricsLogger from '../utils/metrics-logger';
@@ -22,7 +22,7 @@ export class Crawler {
     };
   }
 
-  async scrape(company_name: string): Promise<ScrapingResult> {
+  async scrape(company_name: string): Promise<string> {
     try {
       //WATERFALL STEP #1
 
@@ -53,11 +53,7 @@ export class Crawler {
               //return executive info
               console.log('Found executive info:', hasExecutiveInfo);
 
-              return {
-                website: company_name,
-                hasJobs: false,
-                jobPostings: [],
-              };
+              return hasExecutiveInfo;
             }
           }
         } catch (error) {
@@ -66,24 +62,13 @@ export class Crawler {
         }
       }
 
-
-
-      return {
-        website: company_name,
-        hasJobs: false,
-        jobPostings: [],
-      };
+      return "";
       
       //Call Apollo API
 
     } catch (error) {
       Logger.error('Error during scraping', error as Error);
-      return {
-        website: company_name,
-        hasJobs: false,
-        jobPostings: [],
-        error: (error as Error).message
-      };
+      return "";
     }
   }
 } 

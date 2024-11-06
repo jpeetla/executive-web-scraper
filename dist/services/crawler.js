@@ -66,11 +66,7 @@ class Crawler {
                         if (hasExecutiveInfo) {
                             //return executive info
                             console.log('Found executive info:', hasExecutiveInfo);
-                            return {
-                                website: company_name,
-                                hasJobs: false,
-                                jobPostings: [],
-                            };
+                            return hasExecutiveInfo;
                         }
                     }
                 }
@@ -79,21 +75,12 @@ class Crawler {
                     continue; // Skip to the next iteration if an error occurs
                 }
             }
-            return {
-                website: company_name,
-                hasJobs: false,
-                jobPostings: [],
-            };
+            return "";
             //Call Apollo API
         }
         catch (error) {
             logger_1.Logger.error('Error during scraping', error);
-            return {
-                website: company_name,
-                hasJobs: false,
-                jobPostings: [],
-                error: error.message
-            };
+            return "";
         }
     }
 }

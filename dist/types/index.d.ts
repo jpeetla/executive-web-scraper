@@ -13,12 +13,6 @@ export interface JobPosting {
     benefits?: string[];
     isRemote?: boolean;
 }
-export interface ScrapingResult {
-    website: string;
-    hasJobs: boolean;
-    jobPostings: JobPosting[];
-    error?: string;
-}
 export interface CrawlerOptions {
     maxDepth?: number;
     timeout?: number;
