@@ -1,7 +1,6 @@
 import { CrawlerOptions } from '../types';
 export declare class Crawler {
     private httpClient;
-    private visitedUrls;
     private processedDomains;
     private options;
     constructor(options?: CrawlerOptions);

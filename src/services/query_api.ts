@@ -8,11 +8,11 @@ interface SerpApiResponse {
   organic_results: { link: string }[];
 }
 
-export async function querySerpApi(companyName: string): Promise<string[]> {
+export async function querySerpApi(companyName: string, query: string): Promise<string[]> {
+  const prompt = `${companyName} ${query}`
   const apiKey = process.env.SERP_API_KEY;
   const params = {
-    q: `${companyName} leadership team OR board of directors OR executive profiles`,
-    location: "Austin, Texas, United States",
+    q: prompt,
     hl: "en",
     gl: "us",
     google_domain: "google.com",
@@ -25,13 +25,65 @@ export async function querySerpApi(companyName: string): Promise<string[]> {
     // Extract URLs from the organic results, limiting to the top 5
     const urls = response.data.organic_results
       .map(result => result.link)
-      .slice(0, 3);
+      .slice(0, 5);
 
     return urls;
   } catch (error) {
     console.error("Failed to fetch data from SERP API:", error);
     return [];
   }
+}
+
+export async function findExecutiveLinkedIn(name: string, companyName: string): Promise<string> {
+  const url = 'https://api.apollo.io/api/v1/people/match?reveal_personal_emails=false&reveal_phone_number=false';
+  const apiKey = process.env.APOLLO_API_KEY;
+
+  const options = {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'Cache-Control': 'no-cache',
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey as string
+    },
+    body: JSON.stringify({
+      name: name,
+      organization_name: companyName
+    })
+  };
+
+  try {
+    const response = await fetch(url, options);
+    const data = await response.json();
+
+    if (data) {
+      return "";
+    } else {
+      return ""; 
+    }
+  } catch (error) {
+    console.error("Error fetching executive information:", error);
+    return ""; // Return null if an error occurs
+  }
+}
+
+export async function apolloPeopleSearch(companyName: string): Promise<string> {
+  const options = {
+    method: 'POST',
+    url: `https://api.apollo.io/api/v1/mixed_people/search?person_titles[]=CEO&person_titles[]=CTO&person_titles[]=COO&person_titles[]=Director%20of%20Engineering&person_titles[]=VP%20of%20Engineering&person_titles[]=Head%20of%20Operations&person_titles[]=VP%20of%20People&person_titles[]=Chief%20of%20Staff&person_titles[]=Chief%20People%20Officer&person_titles[]=VP%20of%20Talent%20Acquisition&person_titles[]=Head%20of%20Talent%20Acquisition&q_organization_domains=${companyName}`,
+    headers: {
+      accept: 'application/json',
+      'Cache-Control': 'no-cache',
+      'Content-Type': 'application/json',
+      'x-api-key': 'lbHWXQpjPnt0uAWvOgU1qg'
+    }
+  };
+
+  axios
+    .request(options)
+    .then(res => console.log(res.data))
+    .catch(err => console.error(err));
+  return "";
 }
 
 export async function queryChat(content: string, url: string): Promise<string> {

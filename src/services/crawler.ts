@@ -3,13 +3,10 @@ import { Logger } from '../utils/logger';
 import { CrawlerOptions, JobPosting } from '../types';
 import { MAX_DEPTH, MAX_CONCURRENT_REQUESTS } from '../config/constants';
 import * as cheerio from 'cheerio';
-import MetricsLogger from '../utils/metrics-logger';
-import { CheerioAPI } from 'cheerio';
-import { querySerpApi, queryChat } from './query_api';
+import { querySerpApi, queryChat, findExecutiveLinkedIn, apolloPeopleSearch } from './query_api';
 
 export class Crawler {
   private httpClient: HttpClient;
-  private visitedUrls: Set<string> = new Set();
   private processedDomains: Set<string> = new Set();
   private options: Required<CrawlerOptions>;
 
@@ -24,12 +21,10 @@ export class Crawler {
 
   async scrape(company_name: string): Promise<string> {
     try {
-      //WATERFALL STEP #1
-
-      //Call SERP API to find list of urls
+      //STEP #1: Query SERP API + Extract top 3 URLs + Use GPT LLM to check if the page contains executive info
       // const normalizedUrl = UrlUtils.normalizeUrl(url);
-      const urls = await querySerpApi(company_name);
-      console.log('Top 3 URLs:', urls);
+      const urls = await querySerpApi(company_name, 'leadership team OR board of directors OR executive profiles');
+      console.log('Top 5 URLs:', urls);
 
       for (const url of urls) {
         const isAllowed = await this.httpClient.checkRobotsTxt(url);
@@ -37,7 +32,7 @@ export class Crawler {
           console.log(`Scraping not allowed for ${url}, skipping...`);
           continue;
         }
-        //extract content from url
+
         try {
           const jobPageHtml = await this.httpClient.get(url);
           const jobPage$ = cheerio.load(jobPageHtml.data);
@@ -46,13 +41,12 @@ export class Crawler {
           if (!this.processedDomains.has(domain)) {
             this.processedDomains.add(domain);
             const pageContent = jobPage$('body').text();
-            //pass cleaned content to chat
             const hasExecutiveInfo = await queryChat(pageContent, url);
 
             if (hasExecutiveInfo) {
-              //return executive info
               console.log('Found executive info:', hasExecutiveInfo);
 
+              // const executive_linkedin = findExecutiveLinkedIn("Tim Zheng", "Apollo")
               return hasExecutiveInfo;
             }
           }
@@ -62,10 +56,15 @@ export class Crawler {
         }
       }
 
+      //STEP #2: Directly query SERP API for executive linkedln info
+      const linkedin_urls = await querySerpApi(company_name, 'CEO, CTO, COO, and/or executive team LinkedIn');
+      
+      //STEP #3: Query Apollo API
+      //find company domaion w/o www.
+      const apollo_linkedin_data = await apolloPeopleSearch(company_name);
+
       return "";
       
-      //Call Apollo API
-
     } catch (error) {
       Logger.error('Error during scraping', error as Error);
       return "";

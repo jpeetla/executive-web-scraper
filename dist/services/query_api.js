@@ -3,16 +3,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.queryChat = exports.querySerpApi = void 0;
+exports.queryChat = exports.findExecutives = exports.querySerpApi = void 0;
 const axios_1 = __importDefault(require("axios"));
 const logger_1 = require("../utils/logger");
 const constants_1 = require("../config/constants");
 const openai_1 = require("openai");
-async function querySerpApi(companyName) {
+async function querySerpApi(companyName, query) {
+    const prompt = `${companyName} ${query}`;
     const apiKey = process.env.SERP_API_KEY;
     const params = {
-        q: `${companyName} leadership team OR board of directors OR executive profiles`,
-        location: "Austin, Texas, United States",
+        q: prompt,
         hl: "en",
         gl: "us",
         google_domain: "google.com",
@@ -23,7 +23,7 @@ async function querySerpApi(companyName) {
         // Extract URLs from the organic results, limiting to the top 5
         const urls = response.data.organic_results
             .map(result => result.link)
-            .slice(0, 3);
+            .slice(0, 5);
         return urls;
     }
     catch (error) {
@@ -32,6 +32,40 @@ async function querySerpApi(companyName) {
     }
 }
 exports.querySerpApi = querySerpApi;
+async function findExecutives(companyName, titles = ["CEO", "CFO", "CTO", "COO", "CMO"]) {
+    try {
+        const executives = [];
+        for (const title of titles) {
+            const response = await axios_1.default.get(`https://api.apollo.io/v1/match`, {
+                headers: {
+                    Authorization: `Bearer ${process.env.SERP_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                params: {
+                    title,
+                    organization_name: companyName,
+                    person_country: 'US' // Adjust location if necessary
+                }
+            });
+            if (response.data && response.data.persons) {
+                response.data.persons.forEach((person) => {
+                    executives.push({
+                        name: person.name,
+                        title: person.title,
+                        linkedin: person.linkedin_url,
+                        company: person.organization_name
+                    });
+                });
+            }
+        }
+        return executives;
+    }
+    catch (error) {
+        console.error("Error finding executives:", error);
+        return [];
+    }
+}
+exports.findExecutives = findExecutives;
 async function queryChat(content, url) {
     try {
         const openai = new openai_1.OpenAI({ apiKey: process.env.OPENAI_API_KEY });
