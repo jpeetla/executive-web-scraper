@@ -2,13 +2,14 @@ import axios from 'axios';
 import { Logger } from '../utils/logger';
 import { COMMON_EXECUTIVE_KEYWORDS } from '../config/constants';
 import { OpenAI } from 'openai';
+import os from 'os';
 
 interface SerpApiResponse {
   organic_results: { link: string }[];
 }
 
 export async function querySerpApi(companyName: string): Promise<string[]> {
-  const apiKey = "0fe2bae7badde0df4430892bba286f6394526f0d52f3e539be9b16c1340f6c14";
+  const apiKey = process.env.SERP_API_KEY;
   const params = {
     q: `${companyName} leadership team OR board of directors OR executive profiles`,
     location: "Austin, Texas, United States",
@@ -35,7 +36,7 @@ export async function querySerpApi(companyName: string): Promise<string[]> {
 
 export async function queryChat(content: string, url: string): Promise<string> {
   try {
-    const openai = new OpenAI({ apiKey: "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" });
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); 
 
     const processedContent = prepareContentForLLM(content);
     Logger.info(`Sending ${processedContent.length} characters to LLM for ${url}`);
