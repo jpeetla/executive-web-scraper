@@ -1,6 +1,5 @@
 import { HttpClient } from './http-client';
 import { Logger } from '../utils/logger';
-import { UrlUtils } from '../utils/url-utils';
 import { ScrapingResult, CrawlerOptions, JobPosting } from '../types';
 import { MAX_DEPTH, MAX_CONCURRENT_REQUESTS } from '../config/constants';
 import * as cheerio from 'cheerio';
@@ -26,35 +25,50 @@ export class Crawler {
   async scrape(company_name: string): Promise<ScrapingResult> {
     try {
       //WATERFALL STEP #1
+
       //Call SERP API to find list of urls
-        //check if url isAllowed through robots.txt
-        //Call Parser to pass content of urls into GPT
-      const companyName = 'Accompany Health';
-      const urls = await querySerpApi(companyName);
-      console.log('Top 5 URLs:', urls);
+      const urls = await querySerpApi(company_name);
+      console.log('Top 3 URLs:', urls);
 
       for (const url of urls) {
+        const isAllowed = await this.httpClient.checkRobotsTxt(url);
+        if (!isAllowed) {
+          console.log(`Scraping not allowed for ${url}, skipping...`);
+          continue;
+        }
         //extract content from url
-        const jobPageHtml = await this.httpClient.get(url);
-        const jobPage$ = cheerio.load(jobPageHtml.data);
+        try {
+          const jobPageHtml = await this.httpClient.get(url);
+          const jobPage$ = cheerio.load(jobPageHtml.data);
 
-        const domain = new URL(url).hostname;
-        if (!this.processedDomains.has(domain)) {
-          this.processedDomains.add(domain);
-          const pageContent = jobPage$('body').text();
-          const hasExecutiveInfo = await queryChat(pageContent, url);
+          const domain = new URL(url).hostname;
+          if (!this.processedDomains.has(domain)) {
+            this.processedDomains.add(domain);
+            const pageContent = jobPage$('body').text();
+            //pass cleaned content to chat
+            const hasExecutiveInfo = await queryChat(pageContent, url);
 
-          if (hasExecutiveInfo) {
-            //return executive info
-            console.log('Found executive info:', hasExecutiveInfo);
+            if (hasExecutiveInfo) {
+              //return executive info
+              console.log('Found executive info:', hasExecutiveInfo);
+
+              return {
+                website: company_name,
+                hasJobs: false,
+                jobPostings: [],
+              };
+            }
           }
-
-          
+        } catch (error) {
+          console.error(`Error fetching job page for ${url}:`, error);
+          continue;  // Skip to the next iteration if an error occurs
         }
       }
 
+
+
       return {
-        website: companyName,
+        website: company_name,
         hasJobs: false,
         jobPostings: [],
       };

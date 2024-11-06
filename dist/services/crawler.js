@@ -44,28 +44,42 @@ class Crawler {
         try {
             //WATERFALL STEP #1
             //Call SERP API to find list of urls
-            //check if url isAllowed through robots.txt
-            //Call Parser to pass content of urls into GPT
-            const companyName = 'Accompany Health';
-            const urls = await (0, query_api_1.querySerpApi)(companyName);
-            console.log('Top 5 URLs:', urls);
+            const urls = await (0, query_api_1.querySerpApi)(company_name);
+            console.log('Top 3 URLs:', urls);
             for (const url of urls) {
+                const isAllowed = await this.httpClient.checkRobotsTxt(url);
+                if (!isAllowed) {
+                    console.log(`Scraping not allowed for ${url}, skipping...`);
+                    continue;
+                }
                 //extract content from url
-                const jobPageHtml = await this.httpClient.get(url);
-                const jobPage$ = cheerio.load(jobPageHtml.data);
-                const domain = new URL(url).hostname;
-                if (!this.processedDomains.has(domain)) {
-                    this.processedDomains.add(domain);
-                    const pageContent = jobPage$('body').text();
-                    const hasExecutiveInfo = await (0, query_api_1.queryChat)(pageContent, url);
-                    if (hasExecutiveInfo) {
-                        //return executive info
-                        console.log('Found executive info:', hasExecutiveInfo);
+                try {
+                    const jobPageHtml = await this.httpClient.get(url);
+                    const jobPage$ = cheerio.load(jobPageHtml.data);
+                    const domain = new URL(url).hostname;
+                    if (!this.processedDomains.has(domain)) {
+                        this.processedDomains.add(domain);
+                        const pageContent = jobPage$('body').text();
+                        //pass cleaned content to chat
+                        const hasExecutiveInfo = await (0, query_api_1.queryChat)(pageContent, url);
+                        if (hasExecutiveInfo) {
+                            //return executive info
+                            console.log('Found executive info:', hasExecutiveInfo);
+                            return {
+                                website: company_name,
+                                hasJobs: false,
+                                jobPostings: [],
+                            };
+                        }
                     }
+                }
+                catch (error) {
+                    console.error(`Error fetching job page for ${url}:`, error);
+                    continue; // Skip to the next iteration if an error occurs
                 }
             }
             return {
-                website: companyName,
+                website: company_name,
                 hasJobs: false,
                 jobPostings: [],
             };
