@@ -1,5 +1,11 @@
 import { Crawler } from './services/crawler';
 import { Logger } from './utils/logger';
+import express from 'express';
+
+const app = express();
+
+app.get('/', (req, res) => res.send('Home Page Route'));
+app.get('/about', (req, res) => res.send('About Page Route'));
 
 export async function handler(event: any) {
   const companyName = event.queryStringParameters?.companyName || "Default Company";
@@ -26,3 +32,6 @@ export async function handler(event: any) {
     };
   }
 }
+
+export default app; // This should work, but let's also ensure it’s a handler function below.
+
