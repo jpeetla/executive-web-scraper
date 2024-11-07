@@ -54,5 +54,5 @@ export interface LLMResponse {
 export interface Executive {
   name: string;
   title: string;
-  linkedin: "";
+  linkedin: string;
 }

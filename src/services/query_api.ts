@@ -9,8 +9,7 @@ interface SerpApiResponse {
   organic_results: { link: string }[];
 }
 
-export async function querySerpApi(companyName: string, query: string): Promise<string[]> {
-  const prompt = `${companyName} ${query}`
+export async function querySerpApi(prompt: string): Promise<string[]> {
   const apiKey = process.env.SERP_API_KEY;
   const params = {
     q: prompt,
@@ -26,7 +25,7 @@ export async function querySerpApi(companyName: string, query: string): Promise<
     // Extract URLs from the organic results, limiting to the top 5
     const urls = response.data.organic_results
       .map(result => result.link)
-      .slice(0, 5);
+      .slice(0, 3);
 
     return urls;
   } catch (error) {

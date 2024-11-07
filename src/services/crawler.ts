@@ -19,18 +19,18 @@ export class Crawler {
     };
   }
 
-  async scrape(company_name: string): Promise<string> {
+  async scrape(company_name: string): Promise<Executive[]> {
     try {
       //STEP #1: Query SERP API + Extract top 3 URLs + Use GPT LLM to check if the page contains executive info
       // const normalizedUrl = UrlUtils.normalizeUrl(url);
       const executivesData: Executive[] = [];
-      const urls = await querySerpApi(company_name, 'leadership team OR board of directors OR executive profiles');
-      console.log('Top 5 URLs:', urls);
+      const urls = await querySerpApi(`${company_name} leadership team OR board of directors OR executive profiles`);
+      console.log('Top 3 URLs:', urls);
 
       for (const url of urls) {
         const isAllowed = await this.httpClient.checkRobotsTxt(url);
         if (!isAllowed) {
-          console.log(`Scraping not allowed for ${url}, skipping...`);
+          Logger.error(`Scraping not allowed for ${url}, skipping...`);
           continue;
         }
 
@@ -45,32 +45,40 @@ export class Crawler {
             const chatResponse = await queryChat(pageContent, url);
 
             if (chatResponse) {
-              chatResponse.executives.forEach((executive: any) => {
+              for(const executive of chatResponse.executives) {
                 console.log(`Name: ${executive.name}, Title: ${executive.title}`);
-              });
+                const linkedin_serp_results = await querySerpApi(`${executive.name} ${executive.title} LinkedIn`);
+                const linkedinUrl = linkedin_serp_results.length > 0 ? linkedin_serp_results[0] : "";
 
-              const executive_linkedin = findExecutiveLinkedIn("Tim Zheng", "Apollo")
-              return "";
+                const executiveObject: Executive = {
+                  name: executive.name,
+                  title: executive.title,
+                  linkedin: linkedinUrl
+                };
+                executivesData.push(executiveObject);
+              }
             }
           }
         } catch (error) {
-          console.error(`Error fetching job page for ${url}:`, error);
+          Logger.error(`Error fetching job page for ${url}:`, error as Error);
           continue;  // Skip to the next iteration if an error occurs
         }
       }
 
+      return executivesData;
+
       //STEP #2: Directly query SERP API for executive linkedln info
-      const linkedin_urls = await querySerpApi(company_name, 'CEO, CTO, COO, and/or executive team LinkedIn');
+      // const linkedin_urls = await querySerpApi(`${company_name} CEO, CTO, COO, and/or executive team LinkedIn`);
       
       //STEP #3: Query Apollo API
       //find company domaion w/o www.
-      const apollo_linkedin_data = await apolloPeopleSearch(company_name);
+      // const apollo_linkedin_data = await apolloPeopleSearch(company_name);
 
-      return "";
+      // return "";
       
     } catch (error) {
       Logger.error('Error during scraping', error as Error);
-      return "";
+      return [];
     }
   }
 } 
