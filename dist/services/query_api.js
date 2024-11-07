@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.queryChat = exports.findExecutives = exports.querySerpApi = void 0;
+exports.queryChat = exports.apolloPeopleSearch = exports.findExecutiveLinkedIn = exports.querySerpApi = void 0;
 const axios_1 = __importDefault(require("axios"));
 const logger_1 = require("../utils/logger");
 const constants_1 = require("../config/constants");
@@ -32,40 +32,56 @@ async function querySerpApi(companyName, query) {
     }
 }
 exports.querySerpApi = querySerpApi;
-async function findExecutives(companyName, titles = ["CEO", "CFO", "CTO", "COO", "CMO"]) {
+async function findExecutiveLinkedIn(name, companyName) {
+    const url = 'https://api.apollo.io/api/v1/people/match?reveal_personal_emails=false&reveal_phone_number=false';
+    const apiKey = process.env.APOLLO_API_KEY;
+    const options = {
+        method: 'POST',
+        headers: {
+            accept: 'application/json',
+            'Cache-Control': 'no-cache',
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey
+        },
+        body: JSON.stringify({
+            name: name,
+            organization_name: companyName
+        })
+    };
     try {
-        const executives = [];
-        for (const title of titles) {
-            const response = await axios_1.default.get(`https://api.apollo.io/v1/match`, {
-                headers: {
-                    Authorization: `Bearer ${process.env.SERP_API_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                params: {
-                    title,
-                    organization_name: companyName,
-                    person_country: 'US' // Adjust location if necessary
-                }
-            });
-            if (response.data && response.data.persons) {
-                response.data.persons.forEach((person) => {
-                    executives.push({
-                        name: person.name,
-                        title: person.title,
-                        linkedin: person.linkedin_url,
-                        company: person.organization_name
-                    });
-                });
-            }
+        const response = await fetch(url, options);
+        const data = await response.json();
+        if (data) {
+            return "";
         }
-        return executives;
+        else {
+            return "";
+        }
     }
     catch (error) {
-        console.error("Error finding executives:", error);
-        return [];
+        console.error("Error fetching executive information:", error);
+        return ""; // Return null if an error occurs
     }
 }
-exports.findExecutives = findExecutives;
+exports.findExecutiveLinkedIn = findExecutiveLinkedIn;
+async function apolloPeopleSearch(companyName) {
+    const options = {
+        method: 'POST',
+        url: `https://api.apollo.io/api/v1/mixed_people/search?person_titles[]=CEO&person_titles[]=CTO&person_titles[]=COO&person_titles[]=Director%20of%20Engineering&person_titles[]=VP%20of%20Engineering&person_titles[]=Head%20of%20Operations&person_titles[]=VP%20of%20People&person_titles[]=Chief%20of%20Staff&person_titles[]=Chief%20People%20Officer&person_titles[]=VP%20of%20Talent%20Acquisition&person_titles[]=Head%20of%20Talent%20Acquisition&q_organization_domains=${companyName}`,
+        headers: {
+            accept: 'application/json',
+            'Cache-Control': 'no-cache',
+            'Content-Type': 'application/json',
+            'x-api-key': 'lbHWXQpjPnt0uAWvOgU1qg'
+        }
+    };
+    axios_1.default
+        .request(options)
+        .then(res => console.log(res.data))
+        .catch(err => console.error(err));
+    return "";
+}
+exports.apolloPeopleSearch = apolloPeopleSearch;
 async function queryChat(content, url) {
     try {
         const openai = new openai_1.OpenAI({ apiKey: process.env.OPENAI_API_KEY });
