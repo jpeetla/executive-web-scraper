@@ -1,6 +1,6 @@
 import { HttpClient } from './http-client';
 import { Logger } from '../utils/logger';
-import { CrawlerOptions, JobPosting } from '../types';
+import { CrawlerOptions, Executive } from '../types';
 import { MAX_DEPTH, MAX_CONCURRENT_REQUESTS } from '../config/constants';
 import * as cheerio from 'cheerio';
 import { querySerpApi, queryChat, findExecutiveLinkedIn, apolloPeopleSearch } from './query_api';
@@ -23,6 +23,7 @@ export class Crawler {
     try {
       //STEP #1: Query SERP API + Extract top 3 URLs + Use GPT LLM to check if the page contains executive info
       // const normalizedUrl = UrlUtils.normalizeUrl(url);
+      const executivesData: Executive[] = [];
       const urls = await querySerpApi(company_name, 'leadership team OR board of directors OR executive profiles');
       console.log('Top 5 URLs:', urls);
 
@@ -41,13 +42,15 @@ export class Crawler {
           if (!this.processedDomains.has(domain)) {
             this.processedDomains.add(domain);
             const pageContent = jobPage$('body').text();
-            const hasExecutiveInfo = await queryChat(pageContent, url);
+            const chatResponse = await queryChat(pageContent, url);
 
-            if (hasExecutiveInfo) {
-              console.log('Found executive info:', hasExecutiveInfo);
+            if (chatResponse) {
+              chatResponse.executives.forEach((executive: any) => {
+                console.log(`Name: ${executive.name}, Title: ${executive.title}`);
+              });
 
-              // const executive_linkedin = findExecutiveLinkedIn("Tim Zheng", "Apollo")
-              return hasExecutiveInfo;
+              const executive_linkedin = findExecutiveLinkedIn("Tim Zheng", "Apollo")
+              return "";
             }
           }
         } catch (error) {

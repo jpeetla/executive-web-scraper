@@ -98,10 +98,12 @@ async function queryChat(content, url) {
                 }],
             response_format: { type: "json_object" },
             max_tokens: 1000,
-            temperature: 0.1
+            temperature: 0,
+            stop: ["\n\n"]
         });
-        const messageContent = response.choices[0].message?.content;
-        return messageContent;
+        const resultText = response.choices[0].message?.content?.trim() ?? '';
+        const executiveInfo = JSON.parse(resultText);
+        return executiveInfo;
     }
     catch (error) {
         logger_1.Logger.error('Error extracting jobs with LLM', error);
@@ -160,9 +162,9 @@ function calculateJobContentScore(text) {
     let score = 0;
     // Keywords that indicate job content
     const keywords = [
-        'job description', 'requirements', 'qualifications',
-        'responsibilities', 'experience', 'skills',
-        'position', 'role', 'title', 'apply'
+        'leadership', 'team', 'executive',
+        'board', 'leaders', 'directors',
+        'position', 'role', 'CEO', 'president'
     ];
     // Job titles from constants
     const jobTitles = constants_1.COMMON_EXECUTIVE_KEYWORDS;
@@ -182,7 +184,12 @@ function calculateJobContentScore(text) {
     return score;
 }
 function createFocusedPrompt(content) {
-    return `Find company executives from the following text:
-    Return as JSON in this format: {"executive_name": "role_title"}
-    Content: ${content}`;
+    return `I am providing you with text from a company's page. Extract the names and titles of the executives in JSON format like this:
+  [
+    {"name": "John Doe", "title": "CEO"},
+    {"name": "Jane Smith", "title": "COO"}
+  ]
+  Only return this JSON format with no additional text. If no executives are found, return an empty array.
+
+  Text: ${content}`;
 }

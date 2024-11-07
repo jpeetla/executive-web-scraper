@@ -14,13 +14,6 @@ export interface JobPosting {
   isRemote?: boolean;
 }
 
-// export interface ScrapingResult {
-//   website: string;
-//   hasJobs: boolean;
-//   jobPostings: JobPosting[];
-//   error?: string;
-// }
-
 export interface CrawlerOptions {
   maxDepth?: number;
   timeout?: number;
@@ -53,3 +46,13 @@ export class HttpError extends Error {
     this.name = 'HttpError';
   }
 } 
+
+export interface LLMResponse {
+  executives: Executive[];
+}
+
+export interface Executive {
+  name: string;
+  title: string;
+  linkedin: "";
+}

@@ -43,6 +43,7 @@ class Crawler {
         try {
             //STEP #1: Query SERP API + Extract top 3 URLs + Use GPT LLM to check if the page contains executive info
             // const normalizedUrl = UrlUtils.normalizeUrl(url);
+            const executivesData = [];
             const urls = await (0, query_api_1.querySerpApi)(company_name, 'leadership team OR board of directors OR executive profiles');
             console.log('Top 5 URLs:', urls);
             for (const url of urls) {
@@ -58,11 +59,12 @@ class Crawler {
                     if (!this.processedDomains.has(domain)) {
                         this.processedDomains.add(domain);
                         const pageContent = jobPage$('body').text();
-                        const hasExecutiveInfo = await (0, query_api_1.queryChat)(pageContent, url);
-                        if (hasExecutiveInfo) {
-                            console.log('Found executive info:', hasExecutiveInfo);
-                            // const executive_linkedin = findExecutiveLinkedIn("Tim Zheng", "Apollo")
-                            return hasExecutiveInfo;
+                        const chatResponse = await (0, query_api_1.queryChat)(pageContent, url);
+                        if (chatResponse != "") {
+                            executivesData.push(chatResponse);
+                            console.log("Full executivesData structure:", JSON.stringify(chatResponse, null, 2));
+                            const executive_linkedin = (0, query_api_1.findExecutiveLinkedIn)("Tim Zheng", "Apollo");
+                            return chatResponse;
                         }
                     }
                 }

@@ -3,6 +3,7 @@ import { Logger } from '../utils/logger';
 import { COMMON_EXECUTIVE_KEYWORDS } from '../config/constants';
 import { OpenAI } from 'openai';
 import os from 'os';
+import { LLMResponse } from '../types';
 
 interface SerpApiResponse {
   organic_results: { link: string }[];
@@ -86,7 +87,7 @@ export async function apolloPeopleSearch(companyName: string): Promise<string> {
   return "";
 }
 
-export async function queryChat(content: string, url: string): Promise<string> {
+export async function queryChat(content: string, url: string): Promise<LLMResponse> {
   try {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); 
 
@@ -104,15 +105,14 @@ export async function queryChat(content: string, url: string): Promise<string> {
         }],
         response_format: { type: "json_object" },
         max_tokens: 1000, // Leave room for response
-        temperature: 0.1
+        temperature: 0,
+        stop: ["\n\n"]
       });
 
-      const messageContent = response.choices[0].message?.content;
-
-      return messageContent as string;
+      return parseJobsFromResponse(response.choices[0].message?.content ?? '', url);
   } catch (error) {
     Logger.error('Error extracting jobs with LLM', error as Error);
-    return "";
+    return { executives: [] };
   }
 }
 
@@ -179,9 +179,9 @@ function prepareContentForLLM(content: string): string {
 
     // Keywords that indicate job content
     const keywords = [
-      'job description', 'requirements', 'qualifications',
-      'responsibilities', 'experience', 'skills',
-      'position', 'role', 'title', 'apply'
+      'leadership', 'team', 'executive',
+      'board', 'leaders', 'directors',
+      'position', 'role', 'CEO', 'president'
     ];
 
     // Job titles from constants
@@ -205,10 +205,32 @@ function prepareContentForLLM(content: string): string {
   }
 
 function createFocusedPrompt(content: string): string {
-    return `Find company executives from the following text:
-    Return as JSON in this format: {"executive_name": "role_title"}
-    Content: ${content}`;
+  return`I am providing you with text from a company's page. Extract the names and titles of the executives in JSON format like this:
+  [
+    {"name": "John Doe", "title": "CEO"},
+    {"name": "Jane Smith", "title": "COO"}
+  ]
+  Only return this JSON format with no additional text. If no executives are found, return an empty array.
+
+  Text: ${content}`;
+}
+
+function parseJobsFromResponse(response: string, fallbackUrl: string): LLMResponse {
+  try {
+    const parsed = JSON.parse(response);
+
+    // Map each executive to match the `Executive` interface
+    const executives = (parsed.executives || []).map((executive: any) => ({
+      name: executive.name || "",
+      title: executive.title || ""
+    }));
+
+    return { executives };
+  } catch (error) {
+    Logger.error('Error parsing LLM response', error as Error);
+    return { executives: [] };  // Return an empty array if parsing fails
   }
+}
 
 
 
