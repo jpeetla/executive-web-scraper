@@ -27,8 +27,8 @@ export const MAX_DEPTH = 2;
 export const USER_AGENT = 'Mozilla/5.0 (compatible; JobScraperBot/1.0; +http://example.com/bot)';
 
 export const COMMON_EXECUTIVE_KEYWORDS = [
-  'CEO', 'Manager', 'Director', 'CTO', ,
-  'Lead', 'CFO', 'COO', 'Chief People Officer', 'VP of Talent Acquisition',
+  'CEO', 'Founder', 'Vice President', 'Chief Executive Officer', 'Chief Operating Officer', 'Manager', 'Director', 'CTO', 'Chief Technical Officer',
+  'Lead', 'CFO', 'Chief Financial Officer', 'COO', 'Chief People Officer', 'VP of Talent Acquisition',
   'VP of People', 'Chief of Staff', 'Head of Talent Acquisition,', 'Head of People', 'VP of Engineering', 'VP of Operations', 'Director of Engineering',
   'Recruiter', 'associate', 'assistant', 'intern'
 ];

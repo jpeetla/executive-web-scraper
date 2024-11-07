@@ -30,7 +30,7 @@ export class Crawler {
       for (const url of urls) {
         const isAllowed = await this.httpClient.checkRobotsTxt(url);
         if (!isAllowed) {
-          Logger.error(`Scraping not allowed for ${url}, skipping...`);
+          Logger.warn(`Scraping not allowed for ${url}, skipping...`);
           continue;
         }
 
@@ -60,12 +60,18 @@ export class Crawler {
                   title: executive.title,
                   linkedin: linkedinUrl
                 };
-                executivesData.push(executiveObject);
+                const isDuplicate = executivesData.some((existingExecutive) => existingExecutive.linkedin === executiveObject.linkedin);
+                if (!isDuplicate) {
+                  executivesData.push(executiveObject);
+                } else {
+                  Logger.warn(`Skipping duplicate executive: ${executive.name}`);
+                }
+                
               }
             }
           }
         } catch (error) {
-          Logger.error(`Error fetching job page for ${url}:`, error as Error);
+          Logger.warn(`Error fetching job page for ${url}:`);
           continue;  // Skip to the next iteration if an error occurs
         }
       }
@@ -82,7 +88,7 @@ export class Crawler {
       // return "";
       
     } catch (error) {
-      Logger.error('Error during scraping', error as Error);
+      Logger.warn('Error during scraping');
       return [];
     }
   }
