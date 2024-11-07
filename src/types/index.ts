@@ -30,7 +30,7 @@ export interface HttpClientConfig {
 }
 
 export interface HttpResponse<T = any> {
-  data: T;
+  data: T | null;
   status: number;
   headers: Record<string, string>;
   url: string;

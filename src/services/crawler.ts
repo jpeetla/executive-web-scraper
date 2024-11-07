@@ -36,6 +36,11 @@ export class Crawler {
 
         try {
           const jobPageHtml = await this.httpClient.get(url);
+          if (jobPageHtml.status >= 400 || jobPageHtml.data === null) {
+            Logger.warn(`Skipping URL ${url} due to failed request`);
+            continue; 
+          }
+
           const jobPage$ = cheerio.load(jobPageHtml.data);
 
           const domain = new URL(url).hostname;
