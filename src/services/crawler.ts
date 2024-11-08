@@ -99,12 +99,14 @@ export class Crawler {
       }
 
       //STEP #3: Query Apollo API
-      if (executivesData.length === 0) {
-        
-      }
+      // if (executivesData.length === 0) {
+        // INSUFFICIENT FUNDS IN APOLLO API ACCOUNT
+      // }
+
+      Logger.info('No executives found...')
       return executivesData;
     } catch (error) {
-      Logger.warn('Error during scraping');
+      Logger.error('Error scraping company:', error as Error);
       return [];
     }
   }
