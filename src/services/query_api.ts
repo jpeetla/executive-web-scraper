@@ -9,7 +9,7 @@ interface SerpApiResponse {
   organic_results: { link: string }[];
 }
 
-export async function querySerpApi(prompt: string): Promise<string[]> {
+export async function querySerpApi(prompt: string, num_responses: number): Promise<string[]> {
   const apiKey = process.env.SERP_API_KEY;
   const params = {
     q: prompt,
@@ -25,7 +25,7 @@ export async function querySerpApi(prompt: string): Promise<string[]> {
     // Extract URLs from the organic results, limiting to the top 5
     const urls = response.data.organic_results
       .map(result => result.link)
-      .slice(0, 3);
+      .slice(0, num_responses);
 
     return urls;
   } catch (error) {
@@ -197,7 +197,7 @@ function createFocusedPrompt(content: string): string {
   
   Only include executives with one of the following titles:
   - Founders and co-founders (including titles like CEO, CTO, COO)
-  - Chief People Officer, VP of Talent Acquisition, VP of People, Chief of Staff
+  - Chief People Officer, VP of Talent Acquisition, VP of People, Chief of Staff, Talent Partner
   - Head of Talent Acquisition, Head of People
   - VP of Engineering, VP of Operations
   

@@ -24,7 +24,7 @@ export class Crawler {
       //STEP #1: Query SERP API + Extract top 3 URLs + Use GPT LLM to check if the page contains executive info
       // const normalizedUrl = UrlUtils.normalizeUrl(url);
       const executivesData: Executive[] = [];
-      const urls = await querySerpApi(`${company_name} leadership team OR board of directors OR executive profiles`);
+      const urls = await querySerpApi(`${company_name} leadership team OR board of directors OR executive profiles`, 3);
       console.log('Top 3 URLs:', urls);
 
       for (const url of urls) {
@@ -55,7 +55,7 @@ export class Crawler {
             if (chatResponse) {
               for(const executive of chatResponse.executives) {
                 console.log(`Name: ${executive.name}, Title: ${executive.title}`);
-                const linkedin_serp_results = await querySerpApi(`${executive.name} ${executive.title} LinkedIn`);
+                const linkedin_serp_results = await querySerpApi(`${executive.name} ${executive.title} LinkedIn`, 3);
                 const linkedinUrl = linkedin_serp_results.length > 0 ? linkedin_serp_results[0] : "";
 
                 const executiveObject: Executive = {
@@ -81,7 +81,7 @@ export class Crawler {
 
       //STEP #2: Directly query SERP API for executive linkedln info
       if (executivesData.length === 0) {
-        const linkedin_urls = await querySerpApi(`${company_name} CEO, CTO, COO, and/or executive team LinkedIn`);
+        const linkedin_urls = await querySerpApi(`${company_name} CEO, CTO, COO, talent acuisition, hiring team, and/or executive team LinkedIn`, 8);
         for (const linkedin_url of linkedin_urls) {
           if (linkedin_url.includes('www.linkedin.com/in/')) {
             const executiveObject: Executive = {
