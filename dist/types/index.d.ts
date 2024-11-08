@@ -27,7 +27,7 @@ export interface HttpClientConfig {
     maxRedirects?: number;
 }
 export interface HttpResponse<T = any> {
-    data: T;
+    data: T | null;
     status: number;
     headers: Record<string, string>;
     url: string;
@@ -36,4 +36,12 @@ export declare class HttpError extends Error {
     status?: number | undefined;
     url?: string | undefined;
     constructor(message: string, status?: number | undefined, url?: string | undefined);
+}
+export interface LLMResponse {
+    executives: Executive[];
+}
+export interface Executive {
+    name: string;
+    title: string;
+    linkedin: string;
 }

@@ -108,6 +108,7 @@ export async function queryChat(content: string, url: string): Promise<LLMRespon
         stop: ["\n\n"]
       });
 
+      console.log(response.choices[0].message?.content);
       return parseJobsFromResponse(response.choices[0].message?.content ?? '', url);
   } catch (error) {
     Logger.error('Error extracting jobs with LLM', error as Error);
@@ -205,7 +206,7 @@ function prepareContentForLLM(content: string): string {
 
 function createFocusedPrompt(content: string): string {
   return `I am providing you with text from a company's page. Extract only the names and titles of the top executives who hold specific roles, and return them in JSON format like this:
-  [
+  executives = [
     {"name": "John Doe", "title": "CEO"},
     {"name": "Jane Smith", "title": "COO"}
   ]

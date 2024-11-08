@@ -8,8 +8,7 @@ const axios_1 = __importDefault(require("axios"));
 const logger_1 = require("../utils/logger");
 const constants_1 = require("../config/constants");
 const openai_1 = require("openai");
-async function querySerpApi(companyName, query) {
-    const prompt = `${companyName} ${query}`;
+async function querySerpApi(prompt) {
     const apiKey = process.env.SERP_API_KEY;
     const params = {
         q: prompt,
@@ -23,7 +22,7 @@ async function querySerpApi(companyName, query) {
         // Extract URLs from the organic results, limiting to the top 5
         const urls = response.data.organic_results
             .map(result => result.link)
-            .slice(0, 5);
+            .slice(0, 3);
         return urls;
     }
     catch (error) {
@@ -101,13 +100,11 @@ async function queryChat(content, url) {
             temperature: 0,
             stop: ["\n\n"]
         });
-        const resultText = response.choices[0].message?.content?.trim() ?? '';
-        const executiveInfo = JSON.parse(resultText);
-        return executiveInfo;
+        return parseJobsFromResponse(response.choices[0].message?.content ?? '', url);
     }
     catch (error) {
         logger_1.Logger.error('Error extracting jobs with LLM', error);
-        return "";
+        return { executives: [] };
     }
 }
 exports.queryChat = queryChat;
@@ -184,12 +181,35 @@ function calculateJobContentScore(text) {
     return score;
 }
 function createFocusedPrompt(content) {
-    return `I am providing you with text from a company's page. Extract the names and titles of the executives in JSON format like this:
+    return `I am providing you with text from a company's page. Extract only the names and titles of the top executives who hold specific roles, and return them in JSON format like this:
   [
     {"name": "John Doe", "title": "CEO"},
     {"name": "Jane Smith", "title": "COO"}
   ]
-  Only return this JSON format with no additional text. If no executives are found, return an empty array.
+  
+  Only include executives with one of the following titles:
+  - Founders and co-founders (including titles like CEO, CTO, COO)
+  - Chief People Officer, VP of Talent Acquisition, VP of People, Chief of Staff
+  - Head of Talent Acquisition, Head of People
+  - VP of Engineering, VP of Operations
+  
+  Ignore any other roles that do not match this list.
+  Only return the JSON format with no additional text. If no relevant executives are found, return an empty array.
 
   Text: ${content}`;
+}
+function parseJobsFromResponse(response, fallbackUrl) {
+    try {
+        const parsed = JSON.parse(response);
+        // Map each executive to match the `Executive` interface
+        const executives = (parsed.executives || []).map((executive) => ({
+            name: executive.name || "",
+            title: executive.title || ""
+        }));
+        return { executives };
+    }
+    catch (error) {
+        logger_1.Logger.error('Error parsing LLM response', error);
+        return { executives: [] }; // Return an empty array if parsing fails
+    }
 }

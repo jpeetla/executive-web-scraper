@@ -27,7 +27,6 @@ exports.HttpClient = void 0;
 const axios_1 = __importStar(require("axios"));
 const logger_1 = require("../utils/logger");
 const constants_1 = require("../config/constants");
-const types_1 = require("../types");
 class HttpClient {
     constructor(config = {}) {
         this.lastRequestTime = 0;
@@ -83,7 +82,13 @@ class HttpClient {
                 if (error instanceof axios_1.AxiosError) {
                     // Don't retry on client errors (4xx)
                     if (error.response?.status && error.response.status >= 400 && error.response.status < 500) {
-                        throw new types_1.HttpError(error.message, error.response.status, error.config?.url);
+                        logger_1.Logger.warn(`Client error (status ${error.response.status}) for URL ${error.config?.url}. Not retrying.`);
+                        return {
+                            data: null,
+                            status: 401,
+                            headers: {},
+                            url: error.config?.url || "",
+                        };
                     }
                 }
                 if (attempt < this.config.retries) {
@@ -93,21 +98,31 @@ class HttpClient {
                 }
             }
         }
-        throw lastError;
+        logger_1.Logger.warn(`Request failed after ${this.config.retries + 1} attempts: ${lastError?.message}`);
+        return {
+            data: null,
+            status: 500,
+            headers: {},
+            url: "", // Optionally, set this to the last attempted URL
+        };
     }
     async get(url) {
         logger_1.Logger.debug(`Fetching URL: ${url}`);
-        return this.executeWithRetry(() => axios_1.default.get(url, {
+        const response = await this.executeWithRetry(() => this.client.get(url, {
             timeout: this.config.timeout,
             headers: this.defaultHeaders
         }));
+        if (response.status >= 400) {
+            logger_1.Logger.warn(`Failed to fetch URL: ${url} with status code ${response.status}`);
+        }
+        return response;
     }
     async checkRobotsTxt(baseUrl) {
         try {
             const robotsUrl = new URL('/robots.txt', baseUrl).toString();
             const response = await this.get(robotsUrl);
             // Parse robots.txt content
-            const lines = response.data.toLowerCase().split('\n');
+            const lines = response.data?.toLowerCase().split('\n') || [];
             const userAgentSection = lines.findIndex(line => line.startsWith('user-agent: *') ||
                 line.startsWith(`user-agent: ${this.config.userAgent.toLowerCase()}`));
             if (userAgentSection === -1)

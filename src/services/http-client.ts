@@ -72,12 +72,12 @@ export class HttpClient {
         if (error instanceof AxiosError) {
           // Don't retry on client errors (4xx)
           if (error.response?.status && error.response.status >= 400 && error.response.status < 500) {
-            Logger.error(
+            Logger.warn(
               `Client error (status ${error.response.status}) for URL ${error.config?.url}. Not retrying.`
             );
             return {
               data: null,
-              status: error.response.status,
+              status: 401, //error.response.status,
               headers: {},
               url: error.config?.url || "",
             };
@@ -94,7 +94,7 @@ export class HttpClient {
       }
     }
   
-    Logger.error(`Request failed after ${this.config.retries + 1} attempts: ${lastError?.message}`);
+    Logger.warn(`Request failed after ${this.config.retries + 1} attempts: ${lastError?.message}`);
     return {
       data: null,
       status: 500,
