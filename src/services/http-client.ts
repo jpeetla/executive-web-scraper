@@ -50,59 +50,6 @@ export class HttpClient {
     this.lastRequestTime = Date.now();
   }
 
-  // private async executeWithRetry<T>(
-  //   operation: () => Promise<AxiosResponse<T>>
-  // ): Promise<HttpResponse<T>> {
-  //   let lastError: Error | null = null;
-    
-  //   for (let attempt = 0; attempt <= this.config.retries; attempt++) {
-  //     try {
-  //       await this.enforceRateLimit();
-  //       const response = await operation();
-        
-  //       return {
-  //         data: response.data,
-  //         status: response.status,
-  //         headers: response.headers as Record<string, string>,
-  //         url: response.config.url!
-  //       };
-  //     } catch (error) {
-  //       lastError = error as Error;
-        
-  //       if (error instanceof AxiosError) {
-  //         // Don't retry on client errors (4xx)
-  //         if (error.response?.status && error.response.status >= 400 && error.response.status < 500) {
-  //           throw new HttpError(
-  //             error.message,
-  //             error.response.status,
-  //             error.config?.url
-  //           );
-  //         }
-  //       }
-        
-  //       if (attempt < this.config.retries) {
-  //         const delay = this.config.retryDelay * Math.pow(2, attempt);
-  //         Logger.warn(
-  //           `Request failed, retrying in ${delay}ms (attempt ${attempt + 1}/${this.config.retries}): ${(error as Error).message}`
-  //         );
-  //         await this.delay(delay);
-  //       }
-  //     }
-  //   }
-
-  //   throw lastError;
-  // }
-
-  // async get<T = string>(url: string): Promise<HttpResponse<T>> {
-  //   Logger.debug(`Fetching URL: ${url}`);
-  //   return this.executeWithRetry(() =>
-  //     axios.get(url, {
-  //       timeout: this.config.timeout,
-  //       headers: this.defaultHeaders
-  //     })
-  //   );
-  // }
-
   private async executeWithRetry<T>(
     operation: () => Promise<AxiosResponse<T>>
   ): Promise<HttpResponse<T>> {
@@ -125,12 +72,12 @@ export class HttpClient {
         if (error instanceof AxiosError) {
           // Don't retry on client errors (4xx)
           if (error.response?.status && error.response.status >= 400 && error.response.status < 500) {
-            Logger.warn(
+            Logger.error(
               `Client error (status ${error.response.status}) for URL ${error.config?.url}. Not retrying.`
             );
             return {
               data: null,
-              status: error.response.status,
+              status: 405,
               headers: {},
               url: error.config?.url || "",
             };
@@ -147,10 +94,10 @@ export class HttpClient {
       }
     }
   
-    Logger.warn(`Request failed after ${this.config.retries + 1} attempts: ${lastError?.message}`);
+    Logger.error(`Request failed after ${this.config.retries + 1} attempts: ${lastError?.message}`);
     return {
       data: null,
-      status: 500,
+      status: 405,
       headers: {},
       url: "", // Optionally, set this to the last attempted URL
     };
