@@ -103,7 +103,6 @@ export class Crawler {
         // INSUFFICIENT FUNDS IN APOLLO API ACCOUNT
       // }
 
-      Logger.info('No executives found...')
       return executivesData;
     } catch (error) {
       Logger.error('Error scraping company:', error as Error);
