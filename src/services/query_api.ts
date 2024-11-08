@@ -34,58 +34,6 @@ export async function querySerpApi(prompt: string): Promise<string[]> {
   }
 }
 
-export async function findExecutiveLinkedIn(name: string, companyName: string): Promise<string> {
-  const url = 'https://api.apollo.io/api/v1/people/match?reveal_personal_emails=false&reveal_phone_number=false';
-  const apiKey = process.env.APOLLO_API_KEY;
-
-  const options = {
-    method: 'POST',
-    headers: {
-      accept: 'application/json',
-      'Cache-Control': 'no-cache',
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey as string
-    },
-    body: JSON.stringify({
-      name: name,
-      organization_name: companyName
-    })
-  };
-
-  try {
-    const response = await fetch(url, options);
-    const data = await response.json();
-
-    if (data) {
-      return "";
-    } else {
-      return ""; 
-    }
-  } catch (error) {
-    console.error("Error fetching executive information:", error);
-    return ""; // Return null if an error occurs
-  }
-}
-
-export async function apolloPeopleSearch(companyName: string): Promise<string> {
-  const options = {
-    method: 'POST',
-    url: `https://api.apollo.io/api/v1/mixed_people/search?person_titles[]=CEO&person_titles[]=CTO&person_titles[]=COO&person_titles[]=Director%20of%20Engineering&person_titles[]=VP%20of%20Engineering&person_titles[]=Head%20of%20Operations&person_titles[]=VP%20of%20People&person_titles[]=Chief%20of%20Staff&person_titles[]=Chief%20People%20Officer&person_titles[]=VP%20of%20Talent%20Acquisition&person_titles[]=Head%20of%20Talent%20Acquisition&q_organization_domains=${companyName}`,
-    headers: {
-      accept: 'application/json',
-      'Cache-Control': 'no-cache',
-      'Content-Type': 'application/json',
-      'x-api-key': 'lbHWXQpjPnt0uAWvOgU1qg'
-    }
-  };
-
-  axios
-    .request(options)
-    .then(res => console.log(res.data))
-    .catch(err => console.error(err));
-  return "";
-}
-
 export async function queryChat(content: string, url: string): Promise<LLMResponse> {
   try {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); 
@@ -262,7 +210,7 @@ function createFocusedPrompt(content: string): string {
 
 function parseJobsFromResponse(response: string, fallbackUrl: string): LLMResponse {
   try {
-    const parsed = JSON.parse(response);
+    const parsed = JSON.parse(response.trim());
 
     // Map each executive to match the `Executive` interface
     const executives = (parsed.executives || []).map((executive: any) => ({

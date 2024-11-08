@@ -3,7 +3,7 @@ import { Logger } from '../utils/logger';
 import { CrawlerOptions, Executive } from '../types';
 import { MAX_DEPTH, MAX_CONCURRENT_REQUESTS } from '../config/constants';
 import * as cheerio from 'cheerio';
-import { querySerpApi, queryChat, findExecutiveLinkedIn, apolloPeopleSearch } from './query_api';
+import { querySerpApi, queryChat } from './query_api';
 
 export class Crawler {
   private httpClient: HttpClient;
@@ -79,17 +79,30 @@ export class Crawler {
         }
       }
 
-      return executivesData;
-
       //STEP #2: Directly query SERP API for executive linkedln info
-      // const linkedin_urls = await querySerpApi(`${company_name} CEO, CTO, COO, and/or executive team LinkedIn`);
-      
-      //STEP #3: Query Apollo API
-      //find company domaion w/o www.
-      // const apollo_linkedin_data = await apolloPeopleSearch(company_name);
+      if (executivesData.length === 0) {
+        const linkedin_urls = await querySerpApi(`${company_name} CEO, CTO, COO, and/or executive team LinkedIn`);
+        for (const linkedin_url of linkedin_urls) {
+          if (linkedin_url.includes('www.linkedin.com/in/')) {
+            const executiveObject: Executive = {
+              name: "",
+              title: "",
+              linkedin: linkedin_url
+            };
 
-      // return "";
-      
+            const isDuplicate = executivesData.some((existingExecutive) => existingExecutive.linkedin === executiveObject.linkedin);
+            if (!isDuplicate) {
+              executivesData.push(executiveObject);
+            } 
+          }
+        }
+      }
+
+      //STEP #3: Query Apollo API
+      if (executivesData.length === 0) {
+        
+      }
+      return executivesData;
     } catch (error) {
       Logger.warn('Error during scraping');
       return [];

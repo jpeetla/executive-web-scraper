@@ -47,6 +47,7 @@ class Crawler {
             const urls = await (0, query_api_1.querySerpApi)(`${company_name} leadership team OR board of directors OR executive profiles`);
             console.log('Top 3 URLs:', urls);
             for (const url of urls) {
+                logger_1.Logger.info(`Scraping URL: ${url}`);
                 const isAllowed = await this.httpClient.checkRobotsTxt(url);
                 if (!isAllowed) {
                     logger_1.Logger.warn(`Scraping not allowed for ${url}, skipping...`);
@@ -62,7 +63,8 @@ class Crawler {
                     const domain = new URL(url).hostname;
                     if (!this.processedDomains.has(domain)) {
                         this.processedDomains.add(domain);
-                        const pageContent = jobPage$('body').text();
+                        const pageContent = jobPage$('body').text().toLowerCase();
+                        logger_1.Logger.info(`SUCCESS: Page content for ${url} fetched`);
                         const chatResponse = await (0, query_api_1.queryChat)(pageContent, url);
                         if (chatResponse) {
                             for (const executive of chatResponse.executives) {
@@ -87,7 +89,7 @@ class Crawler {
                 }
                 catch (error) {
                     logger_1.Logger.warn(`Error fetching job page for ${url}:`);
-                    continue; // Skip to the next iteration if an error occurs
+                    continue;
                 }
             }
             return executivesData;
