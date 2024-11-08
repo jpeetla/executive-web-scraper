@@ -77,7 +77,7 @@ export class HttpClient {
             );
             return {
               data: null,
-              status: 405,
+              status: error.response.status,
               headers: {},
               url: error.config?.url || "",
             };
@@ -97,7 +97,7 @@ export class HttpClient {
     Logger.error(`Request failed after ${this.config.retries + 1} attempts: ${lastError?.message}`);
     return {
       data: null,
-      status: 405,
+      status: 500,
       headers: {},
       url: "", // Optionally, set this to the last attempted URL
     };
