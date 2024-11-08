@@ -108,7 +108,6 @@ export async function queryChat(content: string, url: string): Promise<LLMRespon
         stop: ["\n\n"]
       });
 
-      console.log(response.choices[0].message?.content);
       return parseJobsFromResponse(response.choices[0].message?.content ?? '', url);
   } catch (error) {
     Logger.error('Error extracting jobs with LLM', error as Error);
@@ -117,8 +116,8 @@ export async function queryChat(content: string, url: string): Promise<LLMRespon
 }
 
 function prepareContentForLLM(content: string): string {
-    const MAX_TOKENS = 1500;
-    const AVERAGE_CHARS_PER_TOKEN = 4; 
+    const MAX_TOKENS = 2000;
+    const AVERAGE_CHARS_PER_TOKEN = 5; 
     const MAX_CHARS = MAX_TOKENS * AVERAGE_CHARS_PER_TOKEN;
 
     //Clean Content
@@ -130,28 +129,19 @@ function prepareContentForLLM(content: string): string {
     // Find the most relevant section if content is too long
     if (cleaned.length > MAX_CHARS) {
       Logger.info(`Content too long (${cleaned.length} chars), extracting most relevant section`);
-      cleaned = extractMostRelevantSection(cleaned);
+      cleaned = extractMostRelevantParagraph(cleaned);
     }
 
     // Final truncation if still too long
     if (cleaned.length > MAX_CHARS) {
-      Logger.info(`Truncating content from ${cleaned.length} to ${MAX_CHARS} chars`);
-      cleaned = cleaned.slice(0, MAX_CHARS);
-      
-      // Try to end at a complete sentence or job listing
-      const lastPeriod = cleaned.lastIndexOf('.');
-      const lastNewline = cleaned.lastIndexOf('\n');
-      const cutoff = Math.max(lastPeriod, lastNewline);
-      
-      if (cutoff > MAX_CHARS * 0.8) { // Only truncate at sentence if we keep at least 80%
-        cleaned = cleaned.slice(0, cutoff + 1);
-      }
+      Logger.info(`Extracting top 2 sections instead...`);
+      cleaned = extractTopTwoSections(cleaned);
     }
 
     return cleaned;
   }
 
-  function extractMostRelevantSection(content: string): string {
+  function extractMostRelevantParagraph(content: string): string {
     const MAX_TOKENS = 1500;
     const AVERAGE_CHARS_PER_TOKEN = 4; 
     const MAX_CHARS = MAX_TOKENS * AVERAGE_CHARS_PER_TOKEN;
@@ -172,20 +162,66 @@ function prepareContentForLLM(content: string): string {
     return bestSection || content.slice(0, MAX_CHARS);
   }
 
- function calculateJobContentScore(text: string): number {
+  function extractTopTwoSections(content: string): string {
+    const CHUNK_SIZE = 4000;
+    const MAX_TOKENS = 1500;
+    const AVERAGE_CHARS_PER_TOKEN = 4; 
+    const MAX_CHARS = MAX_TOKENS * AVERAGE_CHARS_PER_TOKEN;
+
+    // Split content into chunks of approximately CHUNK_SIZE characters
+    const sections = [];
+    for (let i = 0; i < content.length; i += CHUNK_SIZE) {
+        sections.push(content.slice(i, i + CHUNK_SIZE));
+    }
+
+    // Score each chunk and keep track of the top two sections
+    const scoredSections = sections.map(section => ({
+        section,
+        score: calculateJobContentScore(section)
+    }));
+
+    // Sort sections by score in descending order and select the top two
+    scoredSections.sort((a, b) => b.score - a.score);
+    const topSections = scoredSections.slice(0, 2).map(s => s.section);
+
+    // Combine the top sections, ensuring total length doesn't exceed MAX_CHARS
+    let combinedSections = topSections.join('\n\n');
+    if (combinedSections.length > MAX_CHARS) {
+        combinedSections = combinedSections.slice(0, MAX_CHARS);
+        
+        // Try to end at a complete sentence
+        const lastPeriod = combinedSections.lastIndexOf('.');
+        const lastNewline = combinedSections.lastIndexOf('\n');
+        const cutoff = Math.max(lastPeriod, lastNewline);
+        
+        if (cutoff > MAX_CHARS * 0.8) { // Only truncate at sentence if we keep at least 80%
+            combinedSections = combinedSections.slice(0, cutoff + 1);
+        }
+    }
+
+    return combinedSections;
+}
+
+
+function calculateJobContentScore(text: string): number {
     const MAX_TOKENS = 1500;
     const lowerText = text.toLowerCase();
     let score = 0;
 
     // Keywords that indicate job content
     const keywords = [
-      'leadership', 'team', 'executive',
-      'board', 'leaders', 'directors',
-      'position', 'role', 'CEO', 'president'
+      'leadership', 'co-founder', 'team', 'executive', 'board', 'leaders', 'directors', 
+      'position', 'role', 'ceo', 'president', 'cfo', 'coo', 'chief', 
+      'vp', 'vice president', 'management', 'founder', 'partner', 
+      'owner', 'officer', 'chair', 'principal', 'advisor', 
+      'head', 'executive team', 'leadership team', 'senior management',
+      'company officers', 'key personnel', 'corporate officers', 'governance',
+      'administration', 'executive committee', 'managing director'
     ];
+    
 
     // Job titles from constants
-    const jobTitles = COMMON_EXECUTIVE_KEYWORDS;
+    const roleTitles = COMMON_EXECUTIVE_KEYWORDS;
 
     // Score based on keywords
     keywords.forEach(keyword => {
@@ -193,7 +229,7 @@ function prepareContentForLLM(content: string): string {
     });
 
     // Score based on job titles
-    jobTitles.forEach(title => {
+    roleTitles.forEach(title => {
         if (title && lowerText.includes(title.toLowerCase())) score += 3;
     });
 
