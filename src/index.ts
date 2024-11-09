@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import { Crawler } from './services/crawler';
+import { main } from './services/tester';
 
 dotenv.config();
 const app = express();
@@ -27,6 +28,13 @@ app.post('/scrape', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
+});
+
+// Testing 100 domains
+app.get('/test', async (req, res) => {
+  main().catch(error => {
+    res.json('An error occurred in the main function:');
+  }); 
 });
 
 const PORT = process.env.PORT || 3000;

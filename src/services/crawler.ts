@@ -28,8 +28,6 @@ export class Crawler {
       console.log('Top 3 URLs:', urls);
 
       for (const url of urls) {
-        Logger.info(`Scraping URL: ${url}`);
-
         const isAllowed = await this.httpClient.checkRobotsTxt(url);
         if (!isAllowed) {
           Logger.warn(`Scraping not allowed for ${url}, skipping...`);
@@ -49,7 +47,6 @@ export class Crawler {
           if (!this.processedDomains.has(domain)) {
             this.processedDomains.add(domain);
             const pageContent = jobPage$('body').text().toLowerCase();
-            Logger.info(`SUCCESS: Page content for ${url} fetched`);
             const chatResponse = await queryChat(pageContent, url);
 
             if (chatResponse) {

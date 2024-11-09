@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 const express_1 = __importDefault(require("express"));
 const crawler_1 = require("./services/crawler");
+const tester_1 = require("./services/tester");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
@@ -27,6 +28,12 @@ app.post('/scrape', async (req, res) => {
     catch (error) {
         res.status(500).json({ error: error.message });
     }
+});
+// Testing 100 domains
+app.get('/test', async (req, res) => {
+    (0, tester_1.main)().catch(error => {
+        res.json('An error occurred in the main function:');
+    });
 });
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

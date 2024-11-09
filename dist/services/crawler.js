@@ -44,7 +44,7 @@ class Crawler {
             //STEP #1: Query SERP API + Extract top 3 URLs + Use GPT LLM to check if the page contains executive info
             // const normalizedUrl = UrlUtils.normalizeUrl(url);
             const executivesData = [];
-            const urls = await (0, query_api_1.querySerpApi)(`${company_name} leadership team OR board of directors OR executive profiles`);
+            const urls = await (0, query_api_1.querySerpApi)(`${company_name} leadership team OR board of directors OR executive profiles`, 3);
             console.log('Top 3 URLs:', urls);
             for (const url of urls) {
                 logger_1.Logger.info(`Scraping URL: ${url}`);
@@ -69,7 +69,7 @@ class Crawler {
                         if (chatResponse) {
                             for (const executive of chatResponse.executives) {
                                 console.log(`Name: ${executive.name}, Title: ${executive.title}`);
-                                const linkedin_serp_results = await (0, query_api_1.querySerpApi)(`${executive.name} ${executive.title} LinkedIn`);
+                                const linkedin_serp_results = await (0, query_api_1.querySerpApi)(`${executive.name} ${executive.title} LinkedIn`, 3);
                                 const linkedinUrl = linkedin_serp_results.length > 0 ? linkedin_serp_results[0] : "";
                                 const executiveObject = {
                                     name: executive.name,
@@ -92,16 +92,31 @@ class Crawler {
                     continue;
                 }
             }
-            return executivesData;
             //STEP #2: Directly query SERP API for executive linkedln info
-            // const linkedin_urls = await querySerpApi(`${company_name} CEO, CTO, COO, and/or executive team LinkedIn`);
+            if (executivesData.length === 0) {
+                const linkedin_urls = await (0, query_api_1.querySerpApi)(`${company_name} CEO, CTO, COO, talent acuisition, hiring team, and/or executive team LinkedIn`, 8);
+                for (const linkedin_url of linkedin_urls) {
+                    if (linkedin_url.includes('www.linkedin.com/in/')) {
+                        const executiveObject = {
+                            name: "",
+                            title: "",
+                            linkedin: linkedin_url
+                        };
+                        const isDuplicate = executivesData.some((existingExecutive) => existingExecutive.linkedin === executiveObject.linkedin);
+                        if (!isDuplicate) {
+                            executivesData.push(executiveObject);
+                        }
+                    }
+                }
+            }
             //STEP #3: Query Apollo API
-            //find company domaion w/o www.
-            // const apollo_linkedin_data = await apolloPeopleSearch(company_name);
-            // return "";
+            // if (executivesData.length === 0) {
+            // INSUFFICIENT FUNDS IN APOLLO API ACCOUNT
+            // }
+            return executivesData;
         }
         catch (error) {
-            logger_1.Logger.warn('Error during scraping');
+            logger_1.Logger.error('Error scraping company:', error);
             return [];
         }
     }

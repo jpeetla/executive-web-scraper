@@ -200,6 +200,7 @@ function createFocusedPrompt(content: string): string {
   - Chief People Officer, VP of Talent Acquisition, VP of People, Chief of Staff, Talent Partner
   - Head of Talent Acquisition, Head of People
   - VP of Engineering, VP of Operations
+  - Any roles that include the "Talent" keyword
   
   Ignore any other roles that do not match this list.
   Only return the JSON format with no additional text. If no relevant executives are found, return an empty array.

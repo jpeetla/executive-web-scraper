@@ -3,12 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.queryChat = exports.apolloPeopleSearch = exports.findExecutiveLinkedIn = exports.querySerpApi = void 0;
+exports.queryChat = exports.querySerpApi = void 0;
 const axios_1 = __importDefault(require("axios"));
 const logger_1 = require("../utils/logger");
 const constants_1 = require("../config/constants");
 const openai_1 = require("openai");
-async function querySerpApi(prompt) {
+async function querySerpApi(prompt, num_responses) {
     const apiKey = process.env.SERP_API_KEY;
     const params = {
         q: prompt,
@@ -22,7 +22,7 @@ async function querySerpApi(prompt) {
         // Extract URLs from the organic results, limiting to the top 5
         const urls = response.data.organic_results
             .map(result => result.link)
-            .slice(0, 3);
+            .slice(0, num_responses);
         return urls;
     }
     catch (error) {
@@ -31,56 +31,6 @@ async function querySerpApi(prompt) {
     }
 }
 exports.querySerpApi = querySerpApi;
-async function findExecutiveLinkedIn(name, companyName) {
-    const url = 'https://api.apollo.io/api/v1/people/match?reveal_personal_emails=false&reveal_phone_number=false';
-    const apiKey = process.env.APOLLO_API_KEY;
-    const options = {
-        method: 'POST',
-        headers: {
-            accept: 'application/json',
-            'Cache-Control': 'no-cache',
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey
-        },
-        body: JSON.stringify({
-            name: name,
-            organization_name: companyName
-        })
-    };
-    try {
-        const response = await fetch(url, options);
-        const data = await response.json();
-        if (data) {
-            return "";
-        }
-        else {
-            return "";
-        }
-    }
-    catch (error) {
-        console.error("Error fetching executive information:", error);
-        return ""; // Return null if an error occurs
-    }
-}
-exports.findExecutiveLinkedIn = findExecutiveLinkedIn;
-async function apolloPeopleSearch(companyName) {
-    const options = {
-        method: 'POST',
-        url: `https://api.apollo.io/api/v1/mixed_people/search?person_titles[]=CEO&person_titles[]=CTO&person_titles[]=COO&person_titles[]=Director%20of%20Engineering&person_titles[]=VP%20of%20Engineering&person_titles[]=Head%20of%20Operations&person_titles[]=VP%20of%20People&person_titles[]=Chief%20of%20Staff&person_titles[]=Chief%20People%20Officer&person_titles[]=VP%20of%20Talent%20Acquisition&person_titles[]=Head%20of%20Talent%20Acquisition&q_organization_domains=${companyName}`,
-        headers: {
-            accept: 'application/json',
-            'Cache-Control': 'no-cache',
-            'Content-Type': 'application/json',
-            'x-api-key': 'lbHWXQpjPnt0uAWvOgU1qg'
-        }
-    };
-    axios_1.default
-        .request(options)
-        .then(res => console.log(res.data))
-        .catch(err => console.error(err));
-    return "";
-}
-exports.apolloPeopleSearch = apolloPeopleSearch;
 async function queryChat(content, url) {
     try {
         const openai = new openai_1.OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -218,9 +168,10 @@ function createFocusedPrompt(content) {
   
   Only include executives with one of the following titles:
   - Founders and co-founders (including titles like CEO, CTO, COO)
-  - Chief People Officer, VP of Talent Acquisition, VP of People, Chief of Staff
+  - Chief People Officer, VP of Talent Acquisition, VP of People, Chief of Staff, Talent Partner
   - Head of Talent Acquisition, Head of People
   - VP of Engineering, VP of Operations
+  - Any roles that include the "Talent" keyword
   
   Ignore any other roles that do not match this list.
   Only return the JSON format with no additional text. If no relevant executives are found, return an empty array.
@@ -229,7 +180,7 @@ function createFocusedPrompt(content) {
 }
 function parseJobsFromResponse(response, fallbackUrl) {
     try {
-        const parsed = JSON.parse(response);
+        const parsed = JSON.parse(response.trim());
         // Map each executive to match the `Executive` interface
         const executives = (parsed.executives || []).map((executive) => ({
             name: executive.name || "",
