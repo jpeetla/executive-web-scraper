@@ -80,7 +80,7 @@ function prepareContentForLLM(content: string): string {
       cleaned = extractMostRelevantParagraph(cleaned);
     }
 
-    // Final truncation if still too long
+    // Split into chunks of 6000 CHARACTERS & Return top 2 sections
     if (cleaned.length > MAX_CHARS) {
       Logger.info(`Extracting top 2 sections instead...`);
       cleaned = extractTopTwoSections(cleaned);
@@ -111,7 +111,7 @@ function prepareContentForLLM(content: string): string {
   }
 
   function extractTopTwoSections(content: string): string {
-    const CHUNK_SIZE = 4000;
+    const CHUNK_SIZE = 6000;
     const MAX_TOKENS = 1500;
     const AVERAGE_CHARS_PER_TOKEN = 4; 
     const MAX_CHARS = MAX_TOKENS * AVERAGE_CHARS_PER_TOKEN;
@@ -148,7 +148,7 @@ function prepareContentForLLM(content: string): string {
     }
 
     return combinedSections;
-}
+  }
 
 
 function calculateJobContentScore(text: string): number {
@@ -202,7 +202,8 @@ function createFocusedPrompt(content: string): string {
   - VP of Engineering, VP of Operations
   - Any roles that include the "Talent" keyword
   
-  Ignore any other roles that do not match this list.
+  Exclude any roles that contain science-specific keywords or unrelated titles. 
+  Do not include titles that contain words such as "Scientific," "Biology," "Science," "Research," or "Laboratory," unless the full title matches the specified roles above.  
   Only return the JSON format with no additional text. If no relevant executives are found, return an empty array.
 
   Text: ${content}`;

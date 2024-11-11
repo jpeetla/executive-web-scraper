@@ -4,6 +4,7 @@ import { CrawlerOptions, Executive } from '../types';
 import { MAX_DEPTH, MAX_CONCURRENT_REQUESTS } from '../config/constants';
 import * as cheerio from 'cheerio';
 import { querySerpApi, queryChat } from './query_api';
+import puppeteer from 'puppeteer';
 
 export class Crawler {
   private httpClient: HttpClient;
