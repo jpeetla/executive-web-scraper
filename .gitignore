@@ -1,1 +1,4 @@
 node_modules
+executives_data.csv
+expected_data.csv
+.env
