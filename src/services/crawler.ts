@@ -4,7 +4,8 @@ import { CrawlerOptions, Executive } from '../types';
 import { MAX_DEPTH, MAX_CONCURRENT_REQUESTS } from '../config/constants';
 import * as cheerio from 'cheerio';
 import { querySerpApi, queryChat } from './query_api';
-import { cleanContentforLLM, getAllTextFromPage } from './webpage_content';
+import { cleanContentforLLM, removeStopWords, puppeteerWebpageExtraction } from './webpage_content';
+import { isFsReadStream } from 'openai/_shims';
 
 export class Crawler {
   private httpClient: HttpClient;
@@ -24,7 +25,7 @@ export class Crawler {
       //STEP #1: Query SERP API + Extract top 3 URLs + Use GPT LLM to check if the page contains executive info
       // const normalizedUrl = UrlUtils.normalizeUrl(url);
       const executivesData: Executive[] = [];
-      const urls = await querySerpApi(`${company_name} leadership team OR board of directors OR talent partners`, 3);
+      const urls = await querySerpApi(`${company_name} leadership team OR board of directors OR executive team`, 2);
       console.log('Top 3 URLs:', urls);
 
       for (const url of urls) {
@@ -36,27 +37,28 @@ export class Crawler {
         }
 
         try {
-          // const jobPageHtml = await this.httpClient.get(url);
-          // if (jobPageHtml.status >= 400 || jobPageHtml.data === null) {
-          //   Logger.warn(`Skipping URL ${url} due to failed request`);
-          //   continue;
-          // }
-
-          // const jobPage$ = cheerio.load(jobPageHtml.data);
-          // var pageContent = jobPage$('body').text().toLowerCase();
-          // pageContent = pageContent
-          //   .replace(/\s+/g, ' ')
-          //   .replace(/[^\w\s-.,()]/g, '')
-          //   .trim();
+          var pageContent = await puppeteerWebpageExtraction(url);
+          var chatResponse = await queryChat(pageContent, url);
           
-          var pageContent = await getAllTextFromPage(url);
-          console.log(pageContent);
-          const cleanedContent = await cleanContentforLLM(pageContent, url);
-          const chatResponse = await queryChat(cleanedContent, url);
+          // if nothing found, extract all html content, clean, and try again
+          // if (!chatResponse) {
+          //   Logger.info(`No executives found in first pass, trying again with full page content`);
+          //   const jobPageHtml = await this.httpClient.get(url);
+          //   if (jobPageHtml.status >= 400 || jobPageHtml.data === null) {
+          //     Logger.warn(`Skipping URL ${url} due to failed request`);
+          //     continue;
+          //   }
+  
+          //   const jobPage$ = cheerio.load(jobPageHtml.data);
+          //   var pageContent = jobPage$('body').text().toLowerCase();
+          //   pageContent = pageContent
+          //     .replace(/\s+/g, ' ')
+          //     .replace(/[^\w\s-.,()]/g, '')
+          //     .trim();
 
-          // await downloadWebpageAsPDF(url);
-          // const filePath = "webpage.pdf";
-          // const chatResponse = await queryClaude(filePath);
+          //   const cleanedContent = await cleanContentforLLM(pageContent, url);
+          //   chatResponse = await queryChat(cleanedContent, url);
+          // }
 
           if (chatResponse) {
             for(const executive of chatResponse.executives) {
@@ -78,7 +80,7 @@ export class Crawler {
             }
           }
         } catch (error) {
-          Logger.warn(`Error fetching job page for ${url}:`);
+          Logger.warn(`Error fetching job page for ${url} ${error}:`);
           continue;  
         }
       }

@@ -5,7 +5,7 @@ import { TESTING_DOMAINS } from '../config/constants';
 import { Logger } from '../utils/logger';
 
 const csvWriter = createObjectCsvWriter({
-    path: 'executives_data.csv',
+    path: 'my_results.csv',
     header: [
       { id: 'company_name', title: 'Domain' },
       { id: 'executive_name', title: 'Executive_Name' },

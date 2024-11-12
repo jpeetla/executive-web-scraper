@@ -2,52 +2,28 @@ import { COMMON_EXECUTIVE_KEYWORDS } from '../config/constants';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { LLMResponse } from '../types';
 import { Logger } from '../utils/logger';
-import * as cheerio from 'cheerio';
+import natural from 'natural';
+
 
 export async function cleanContentforLLM(content: string, url: string): Promise<string> {
     const MAX_TOKENS = 4000;
     const AVERAGE_CHARS_PER_TOKEN = 4; 
     const MAX_CHARS = MAX_TOKENS * AVERAGE_CHARS_PER_TOKEN;
 
+    content = removeStopWords(content);
     // If short enough, return content as is
     if (content.length <= MAX_CHARS) {
         return content;
-    }
-    
-    // Find the most relevant section if content is too long
-    if (content.length > MAX_CHARS) {
-      Logger.info(`Extracting most relevant paragraph...`);
-      content = extractMostRelevantParagraph(content);
     }
 
     // Split into chunks of 6000 CHARACTERS & Return top 2 sections
     if (content.length > MAX_CHARS) {
       Logger.info(`Extracting top 2 sections instead...`);
       content = extractTopTwoSections(content);
+      content = removeStopWords(content);
     }
 
     return content;
-  }
-
-function extractMostRelevantParagraph(content: string): string {
-    const MAX_TOKENS = 1500;
-    const AVERAGE_CHARS_PER_TOKEN = 4; 
-    const MAX_CHARS = MAX_TOKENS * AVERAGE_CHARS_PER_TOKEN;
-    
-    // Split into paragraphs or sections
-    const sections = content.split(/\n\s*\n/);
-    let bestSection = '';
-    let bestScore = 0;
-
-    for (const section of sections) {
-      const score = calculateJobContentScore(section);
-      if (score > bestScore) {
-        bestScore = score;
-        bestSection = section;
-      }
-    }
-
-    return bestSection || content.slice(0, MAX_CHARS);
   }
 
 function extractTopTwoSections(content: string): string {
@@ -145,70 +121,22 @@ export function parseJobsFromResponse(response: string): LLMResponse {
   }
   
 
-  // export async function getAllTextFromPage(url: string): Promise<string> {
-  //   const browser = await puppeteer.launch();
-  //   const page = await browser.newPage();
-  
-  //   try {
-  //     await page.goto(url, { waitUntil: 'networkidle2' });
-  
-  //     var allText = ''
-  //     const textSnippet = await page.evaluate(() => {
-  //       // Get all text from the document body
-  //       allText = document.body.innerText.trim();
-  //       return allText;
-
-  //     });
-  
-  //     return textSnippet;
-  //   } catch (error) {
-  //     console.error(`Failed to get all text from ${url}:`, error);
-  //     return '';
-  //   } finally {
-  //     await browser.close();
-  //   }
-  // }
-
-
-  export async function getAllTextFromPage(url: string): Promise<string> {
+export async function puppeteerWebpageExtraction(url: string): Promise<string> {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
   
     try {
       await page.goto(url, { waitUntil: 'networkidle2' });
   
-      const allText = await page.evaluate(() => {
-        // Helper function to recursively get all text within an element
-        function getTextFromElement(element: Element): string {
-          let text = '';
-          element.childNodes.forEach((node) => {
-            if (node.nodeType === Node.TEXT_NODE) {
-              text += node.textContent?.trim() + ' ';
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-              text += getTextFromElement(node as Element) + ' ';
-            }
-          });
-          return text.trim();
-        }
-  
-        // Get text from h2, h3, p, div, and span elements
-        const elements = document.querySelectorAll('h2, h3, p, div, span');
-        let collectedText = '';
-  
-        elements.forEach((element) => {
-          const elementText = getTextFromElement(element);
-          if (elementText.length > 20) { // Filter out very short texts
-            collectedText += elementText + '\n\n';
-          }
-        });
-        const cleanedText = allText.replace(/<[^>]*>/g, '').trim();
+      var allText = ''
+      const textSnippet = await page.evaluate(() => {
+        // Get all text from the document body
+        allText = document.body.innerText.trim();
+        return allText;
 
-  
-        // Trim collected text to ensure it stays within desired length
-        return collectedText
       });
   
-      return allText;
+      return textSnippet;
     } catch (error) {
       console.error(`Failed to get all text from ${url}:`, error);
       return '';
@@ -217,5 +145,10 @@ export function parseJobsFromResponse(response: string): LLMResponse {
     }
   }
 
-  
-  
+export function removeStopWords(text: string): string {
+    const stopWords = natural.stopwords;
+    const tokenizer = new natural.WordTokenizer();
+    const tokens = tokenizer.tokenize(text);
+    const filteredTokens = tokens.filter(word => !stopWords.includes(word.toLowerCase()));
+    return filteredTokens.join(' ');
+}

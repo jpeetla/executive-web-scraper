@@ -1,8 +1,8 @@
 import pandas as pd
 
 # Load the datasets
-expected_data = pd.read_csv("expected_data.csv")  # Adjust path if needed
-experimental_data = pd.read_csv("executives_data.csv")  # Adjust path if needed
+expected_data = pd.read_csv("expected_data.csv")  
+experimental_data = pd.read_csv("my_results.csv")  
 
 # Initialize counters and list to store unmatched companies
 matched_count = 0
