@@ -16,7 +16,7 @@ const csvWriter = createObjectCsvWriter({
   });
 
 export async function main() {
-    const allResults = [];
+    let allResults = [];
     const crawler = new Crawler();
 
     for (const domain of TESTING_DOMAINS) {
@@ -41,6 +41,18 @@ export async function main() {
 
     console.log(allResults);
 
+    // split first name and last name in allResults
+    allResults = allResults.map(result => {
+        const [first_name, last_name] = result.executive_name.split(' ');
+        return {
+            ...result,
+            first_name,
+            last_name
+        };
+    });
+    
+    console.log(allResults);
+    
     try {
         await csvWriter.writeRecords(allResults);
         Logger.info('Data written to executives_data.csv successfully');

@@ -4,11 +4,10 @@ import { CrawlerOptions, Executive } from '../types';
 import { MAX_DEPTH, MAX_CONCURRENT_REQUESTS } from '../config/constants';
 import * as cheerio from 'cheerio';
 import { querySerpApi, queryChat } from './query_api';
-import puppeteer from 'puppeteer';
+import { cleanContentforLLM, getAllTextFromPage } from './webpage_content';
 
 export class Crawler {
   private httpClient: HttpClient;
-  private processedDomains: Set<string> = new Set();
   private options: Required<CrawlerOptions>;
 
   constructor(options?: CrawlerOptions) {
@@ -25,10 +24,11 @@ export class Crawler {
       //STEP #1: Query SERP API + Extract top 3 URLs + Use GPT LLM to check if the page contains executive info
       // const normalizedUrl = UrlUtils.normalizeUrl(url);
       const executivesData: Executive[] = [];
-      const urls = await querySerpApi(`${company_name} leadership team OR board of directors OR executive profiles`, 3);
+      const urls = await querySerpApi(`${company_name} leadership team OR board of directors OR talent partners`, 3);
       console.log('Top 3 URLs:', urls);
 
       for (const url of urls) {
+        Logger.info(`Scraping URL: ${url}`);
         const isAllowed = await this.httpClient.checkRobotsTxt(url);
         if (!isAllowed) {
           Logger.warn(`Scraping not allowed for ${url}, skipping...`);
@@ -36,39 +36,45 @@ export class Crawler {
         }
 
         try {
-          const jobPageHtml = await this.httpClient.get(url);
-          if (jobPageHtml.status >= 400 || jobPageHtml.data === null) {
-            Logger.warn(`Skipping URL ${url} due to failed request`);
-            continue; 
-          }
+          // const jobPageHtml = await this.httpClient.get(url);
+          // if (jobPageHtml.status >= 400 || jobPageHtml.data === null) {
+          //   Logger.warn(`Skipping URL ${url} due to failed request`);
+          //   continue;
+          // }
 
-          const jobPage$ = cheerio.load(jobPageHtml.data);
+          // const jobPage$ = cheerio.load(jobPageHtml.data);
+          // var pageContent = jobPage$('body').text().toLowerCase();
+          // pageContent = pageContent
+          //   .replace(/\s+/g, ' ')
+          //   .replace(/[^\w\s-.,()]/g, '')
+          //   .trim();
+          
+          var pageContent = await getAllTextFromPage(url);
+          console.log(pageContent);
+          const cleanedContent = await cleanContentforLLM(pageContent, url);
+          const chatResponse = await queryChat(cleanedContent, url);
 
-          const domain = new URL(url).hostname;
-          if (!this.processedDomains.has(domain)) {
-            this.processedDomains.add(domain);
-            const pageContent = jobPage$('body').text().toLowerCase();
-            const chatResponse = await queryChat(pageContent, url);
+          // await downloadWebpageAsPDF(url);
+          // const filePath = "webpage.pdf";
+          // const chatResponse = await queryClaude(filePath);
 
-            if (chatResponse) {
-              for(const executive of chatResponse.executives) {
-                console.log(`Name: ${executive.name}, Title: ${executive.title}`);
-                const linkedin_serp_results = await querySerpApi(`${executive.name} ${executive.title} LinkedIn`, 3);
-                const linkedinUrl = linkedin_serp_results.length > 0 ? linkedin_serp_results[0] : "";
+          if (chatResponse) {
+            for(const executive of chatResponse.executives) {
+              console.log(`Name: ${executive.name}, Title: ${executive.title}`);
+              const linkedin_serp_results = await querySerpApi(`${executive.name} ${executive.title} LinkedIn`, 3);
+              const linkedinUrl = linkedin_serp_results.length > 0 ? linkedin_serp_results[0] : "";
 
-                const executiveObject: Executive = {
-                  name: executive.name,
-                  title: executive.title,
-                  linkedin: linkedinUrl
-                };
-                const isDuplicate = executivesData.some((existingExecutive) => existingExecutive.linkedin === executiveObject.linkedin);
-                if (!isDuplicate) {
-                  executivesData.push(executiveObject);
-                } else {
-                  Logger.warn(`Skipping duplicate executive: ${executive.name}`);
-                }
-                
-              }
+              const executiveObject: Executive = {
+                name: executive.name,
+                title: executive.title,
+                linkedin: linkedinUrl
+              };
+              const isDuplicate = executivesData.some((existingExecutive) => existingExecutive.linkedin === executiveObject.linkedin);
+              if (!isDuplicate) {
+                executivesData.push(executiveObject);
+              } else {
+                Logger.warn(`Skipping duplicate executive: ${executive.name}`);
+              }          
             }
           }
         } catch (error) {
@@ -97,9 +103,6 @@ export class Crawler {
       }
 
       //STEP #3: Query Apollo API
-      // if (executivesData.length === 0) {
-        // INSUFFICIENT FUNDS IN APOLLO API ACCOUNT
-      // }
 
       return executivesData;
     } catch (error) {
