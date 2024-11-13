@@ -11,6 +11,10 @@ export const COMMON_EXECUTIVE_KEYWORDS = [
   'Recruiter', 'associate', 'assistant', 'intern'
 ];
 
+export const serp_query_one = 'leadership team OR board of directors OR executive profiles'
+export const serp_query_two = 'CEO OR Chief Executive Officer OR Chief Operating Officer OR executive team OR management team OR board members OR company executives'
+export const serp_query_three = 'talent partner OR hiring manager OR head of people OR head of talent OR talent acquisition'
+
 export const TESTING_DOMAINS = [
   "https://280.earth",
   "https://6amcity.com",

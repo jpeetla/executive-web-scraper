@@ -1,9 +1,11 @@
 import { COMMON_EXECUTIVE_KEYWORDS } from '../config/constants';
 import puppeteer, { Browser, Page } from 'puppeteer';
-import { LLMResponse } from '../types';
+import { Executive, LLMResponse } from '../types';
 import { Logger } from '../utils/logger';
 import natural from 'natural';
-
+import { HttpClient } from './http-client';
+import { queryChat, querySerpApi } from './query_api';
+import * as cheerio from 'cheerio';
 
 export async function cleanContentforLLM(content: string, url: string): Promise<string> {
     const MAX_TOKENS = 15000;
@@ -145,9 +147,69 @@ export async function puppeteerWebpageExtraction(url: string): Promise<string> {
   }
 
 export function removeStopWords(text: string): string {
-    const stopWords = natural.stopwords;
-    const tokenizer = new natural.WordTokenizer();
-    const tokens = tokenizer.tokenize(text);
-    const filteredTokens = tokens.filter(word => !stopWords.includes(word.toLowerCase()));
-    return filteredTokens.join(' ');
+  const stopWords = natural.stopwords;
+  const tokenizer = new natural.WordTokenizer();
+  const tokens = tokenizer.tokenize(text);
+  const filteredTokens = tokens.filter(word => !stopWords.includes(word.toLowerCase()));
+  return filteredTokens.join(' ');
+}
+
+export async function scrapeURLs(urls: string[], httpClient: HttpClient): Promise<Executive[]> {
+  var executivesData: Executive[] = [];
+  for (const url of urls) {
+    Logger.info(`Scraping URL: ${url}`);
+    const isAllowed = await httpClient.checkRobotsTxt(url);
+    if (!isAllowed) {
+      Logger.warn(`Scraping not allowed for ${url}, skipping...`);
+      continue;
+    }
+
+    try {
+      const jobPageHtml = await httpClient.get(url);
+      if (jobPageHtml.status >= 400 || jobPageHtml.data === null) {
+        Logger.warn(`Skipping URL ${url} due to failed request`);
+        continue;
+      }
+
+      const jobPage$ = cheerio.load(jobPageHtml.data);
+      var pageContent = jobPage$('body').text().toLowerCase();
+      pageContent = pageContent
+        .replace(/[^\w\s-.,()]/g, '')
+        .replace(/\s+/g, ' ')   
+        .replace(/\b(class|id|style|div|span|width|height|margin|padding|color|font|text-align|href|src|alt|meta|css|html|doctype|javascript)\b/g, '')
+        .trim();
+        
+      var cleanedContent = await cleanContentforLLM(pageContent, url);
+      if (cleanedContent.length === 0) {
+        cleanedContent = await puppeteerWebpageExtraction(url);
+      }
+      const chatResponse = await queryChat(cleanedContent, url);
+
+      if (chatResponse) {
+        for(const executive of chatResponse.executives) {
+          console.log(`Name: ${executive.name}, Title: ${executive.title}`);
+          const linkedin_serp_results = await querySerpApi(`${executive.name} ${executive.title} LinkedIn`, 3);
+          const linkedinUrl = linkedin_serp_results.length > 0 ? linkedin_serp_results[0] : "";
+
+          const executiveObject: Executive = {
+            name: executive.name,
+            title: executive.title,
+            linkedin: linkedinUrl
+          };
+          const isDuplicate = executivesData.some((existingExecutive) => existingExecutive.linkedin === executiveObject.linkedin);
+          if (!isDuplicate) {
+            executivesData.push(executiveObject);
+          } else {
+            Logger.warn(`Skipping duplicate executive: ${executive.name}`);
+          }          
+        }
+      }
+      return executivesData;
+    } catch (error) {
+      Logger.warn(`Error fetching job page for ${url} ${error}:`);
+      return []; 
+    }
+  }
+
+  return [];
 }
