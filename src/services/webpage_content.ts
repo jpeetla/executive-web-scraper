@@ -6,7 +6,7 @@ import natural from 'natural';
 
 
 export async function cleanContentforLLM(content: string, url: string): Promise<string> {
-    const MAX_TOKENS = 4000;
+    const MAX_TOKENS = 15000;
     const AVERAGE_CHARS_PER_TOKEN = 4; 
     const MAX_CHARS = MAX_TOKENS * AVERAGE_CHARS_PER_TOKEN;
 
@@ -27,15 +27,14 @@ export async function cleanContentforLLM(content: string, url: string): Promise<
   }
 
 function extractTopTwoSections(content: string): string {
-    const CHUNK_SIZE = 6000;
-    const MAX_TOKENS = 1500;
+    const MAX_TOKENS = 15000;
     const AVERAGE_CHARS_PER_TOKEN = 4; 
     const MAX_CHARS = MAX_TOKENS * AVERAGE_CHARS_PER_TOKEN;
 
     // Split content into chunks of approximately CHUNK_SIZE characters
     const sections = [];
-    for (let i = 0; i < content.length; i += CHUNK_SIZE) {
-        sections.push(content.slice(i, i + CHUNK_SIZE));
+    for (let i = 0; i < content.length; i += MAX_CHARS) {
+        sections.push(content.slice(i, i + MAX_CHARS));
     }
 
     // Score each chunk and keep track of the top two sections

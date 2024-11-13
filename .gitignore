@@ -3,3 +3,4 @@ executives_data.csv
 expected_data.csv
 .env
 venv
+dist
