@@ -40,12 +40,11 @@ export class Crawler {
       }
 
       if (executivesData.length === 0) {
-        Logger.info('No executives found in first query, trying second query...');
+        Logger.info('No executives found in second query, trying third query...');
         await checkAndScrapeURLs(company_name, serp_query_three);
       }
-      //STEP #2: Query LinkedIn directly through SERP API
 
-      //STEP #3: Query Apollo API
+      //STEP #2: Query Apollo API
       // if (executivesData.length === 0) {
       //   console.log("Should que")
       // }
