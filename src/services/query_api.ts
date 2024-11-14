@@ -10,63 +10,6 @@ interface SerpApiResponse {
   organic_results: { link: string }[];
 }
 
-// export async function downloadWebpageAsPDF(url: string): Promise<void> {
-//   try {
-//     // Launch a new browser instance
-//     const browser = await puppeteer.launch();
-//     const page = await browser.newPage();
-    
-//     // Navigate to the specified URL
-//     await page.goto(url, { waitUntil: 'networkidle2' });
-    
-//     // Generate the PDF and save it in the current directory
-//     const fileName = path.resolve('./webpage.pdf'); // Ensures it saves in the current working directory
-//     await page.pdf({
-//       path: fileName,
-//       format: 'A4',   // You can adjust the format based on your needs
-//       printBackground: true, // Print background graphics if needed
-//     });
-
-//     // Close the browser
-//     await browser.close();
-
-//     console.log(`PDF successfully created at ./${fileName}`);
-//   } catch (error) {
-//     console.error('Error generating PDF:', error);
-//   }
-// }
-
-// export async function queryClaude(filePath: string): Promise<LLMResponse> {
-//   try {
-//     const anthropicApiKey = process.env.CLAUDE_API_KEY;
-//     const anthropic = new Anthropic({
-//       apiKey: anthropicApiKey, 
-//     });
-
-//     console.log(filePath);
-//     const msg = await anthropic.messages.create({
-//       model: "claude-3-5-sonnet-20241022",
-//       max_tokens: 1024,
-//       messages: [
-//         { 
-//           role: "user", 
-//           content: createFocusedPrompt(), 
-//         },
-//         {
-//           role: "user",
-//           content: `{"type": "document", "source": {"type": "base64", "media_type": "application/pdf", "data": "${filePath}"}}`
-//         }
-//       ],
-//     });
-
-//     console.log(msg);
-//     return parseJobsFromResponse(msg.toString());
-//   } catch(error) {
-//     Logger.error('Error extracting jobs with LLM', error as Error);
-//     return { executives: [] };
-//   }
-// }
-
 export async function querySerpApi(prompt: string, num_responses: number): Promise<string[]> {
   const apiKey = process.env.SERP_API_KEY;
   const params = {

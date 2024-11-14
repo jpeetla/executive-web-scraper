@@ -119,7 +119,6 @@ export class HttpClient {
     return response;
   }
   
-  
 
   async checkRobotsTxt(baseUrl: string): Promise<boolean> {
     try {

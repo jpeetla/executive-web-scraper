@@ -12,7 +12,6 @@ export async function cleanContentforLLM(content: string, url: string): Promise<
     const AVERAGE_CHARS_PER_TOKEN = 4; 
     const MAX_CHARS = MAX_TOKENS * AVERAGE_CHARS_PER_TOKEN;
 
-    content = removeStopWords(content);
     // If short enough, return content as is
     if (content.length <= MAX_CHARS) {
         return content;
@@ -121,7 +120,6 @@ export function parseJobsFromResponse(response: string): LLMResponse {
     }
   }
   
-
 export async function puppeteerWebpageExtraction(url: string): Promise<string> {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
@@ -181,6 +179,7 @@ export async function scrapeURLs(urls: string[], httpClient: HttpClient): Promis
         
       var cleanedContent = await cleanContentforLLM(pageContent, url);
       if (cleanedContent.length === 0) {
+        Logger.info(`No content extracted from ${url}, trying Puppeteer...`);
         cleanedContent = await puppeteerWebpageExtraction(url);
       }
       const chatResponse = await queryChat(cleanedContent, url);
@@ -213,3 +212,8 @@ export async function scrapeURLs(urls: string[], httpClient: HttpClient): Promis
 
   return [];
 }
+
+
+
+
+
