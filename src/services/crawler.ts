@@ -25,7 +25,7 @@ export class Crawler {
   }
 
   async filterUrlsByCompany(resulting_urls: string[], company_name: string, scrapedURLs: string[]): Promise<string[]> {
-    const allowed_domains = [company_name, "cbinsights.com", "theorg.com", "crunchbase.com"];
+    const allowed_domains = [company_name, "cbinsights.com", "theorg.com", "crunchbase.com", "globenewswire.com"];
     return resulting_urls.filter(url => {
       const domain = this.extractDomain(url);
       return allowed_domains.includes(domain) && !scrapedURLs.includes(url)

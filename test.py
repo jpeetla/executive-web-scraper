@@ -22,7 +22,7 @@ for _, row in expected_data.iterrows():
         matched_count += 1
     else:
         # If no match is found, add the company to missing list
-        missing_companies.append(row['Company'])
+        missing_companies.append(row['Full Name'])
 
 # Calculate accuracy
 total_expected_rows = expected_data.shape[0]

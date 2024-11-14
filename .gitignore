@@ -4,3 +4,4 @@ expected_data.csv
 .env
 venv
 dist
+.DS_Store
