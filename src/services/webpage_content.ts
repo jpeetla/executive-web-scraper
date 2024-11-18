@@ -1,6 +1,6 @@
 import { COMMON_EXECUTIVE_KEYWORDS } from '../config/constants';
 import puppeteer, { Browser, Page } from 'puppeteer';
-import { Executive, LLMResponse } from '../types';
+import { Executive } from '../types';
 import { Logger } from '../utils/logger';
 import natural from 'natural';
 import { HttpClient } from './http-client';
@@ -103,7 +103,7 @@ function calculateJobContentScore(text: string): number {
     return score;
   }
 
-export function parseJobsFromResponse(response: string): LLMResponse {
+export function parseJobsFromResponse(response: string): Executive[] {
     try {
       const parsed = JSON.parse(response.trim());
   
@@ -113,10 +113,10 @@ export function parseJobsFromResponse(response: string): LLMResponse {
         title: executive.title || ""
       }));
   
-      return { executives };
+      return executives;
     } catch (error) {
       Logger.error('Error parsing LLM response', error as Error);
-      return { executives: [] };  // Return an empty array if parsing fails
+      return [];  // Return an empty array if parsing fails
     }
   }
   
@@ -152,7 +152,7 @@ export function removeStopWords(text: string): string {
   return filteredTokens.join(' ');
 }
 
-export async function scrapeURLs(urls: string[], httpClient: HttpClient): Promise<Executive[]> {
+export async function scrapeURLs(domain: string, urls: string[], httpClient: HttpClient): Promise<Executive[]> {
   var executivesData: Executive[] = [];
   for (const url of urls) {
     Logger.info(`Scraping URL: ${url}`);
@@ -182,15 +182,16 @@ export async function scrapeURLs(urls: string[], httpClient: HttpClient): Promis
         Logger.info(`No content extracted from ${url}, trying Puppeteer...`);
         cleanedContent = await puppeteerWebpageExtraction(url);
       }
-      const chatResponse = await queryChat(cleanedContent, url);
+      const executives = await queryChat(cleanedContent, url);
 
-      if (chatResponse) {
-        for(const executive of chatResponse.executives) {
+      if (executives) {
+        for(const executive of executives) {
           console.log(`Name: ${executive.name}, Title: ${executive.title}`);
           const linkedin_serp_results = await querySerpApi(`${executive.name} ${executive.title} LinkedIn`, 3);
-          const linkedinUrl = linkedin_serp_results.length > 0 ? linkedin_serp_results[0] : "";
+          const linkedinUrl = linkedin_serp_results.find(url => url.includes("linkedin.com/in")) || "";
 
           const executiveObject: Executive = {
+            domain: domain,
             name: executive.name,
             title: executive.title,
             linkedin: linkedinUrl

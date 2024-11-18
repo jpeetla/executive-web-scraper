@@ -1,11 +1,11 @@
 import fs from 'fs';
 import { createObjectCsvWriter } from 'csv-writer';
 import { Crawler } from './crawler';
-import { TESTING_DOMAINS } from '../config/constants';
+import { TESTING_DOMAINS, missingDomains } from '../config/constants';
 import { Logger } from '../utils/logger';
 
 const csvWriter = createObjectCsvWriter({
-    path: 'my_results.csv',
+    path: 'missing_domains.csv',
     header: [
       { id: 'company_name', title: 'Domain' },
       { id: 'executive_name', title: 'Executive_Name' },
@@ -19,7 +19,7 @@ export async function main() {
     let allResults = [];
     const crawler = new Crawler();
 
-    for (const domain of TESTING_DOMAINS) {
+    for (const domain of missingDomains) {
         try {
             Logger.info(`Scraping data for company: ${domain}`);
             const executivesData = await crawler.scrape(domain);

@@ -1,9 +1,8 @@
 import axios from 'axios';
+import { Executive } from '../types';
 import { Logger } from '../utils/logger';
 import { OpenAI } from 'openai';
-import { LLMResponse } from '../types';
 import { parseJobsFromResponse } from './webpage_content'
-import Anthropic from '@anthropic-ai/sdk';
 
 
 interface SerpApiResponse {
@@ -23,7 +22,6 @@ export async function querySerpApi(prompt: string, num_responses: number): Promi
   try {
     const response = await axios.get<SerpApiResponse>('https://serpapi.com/search', { params });
     
-    // Extract URLs from the organic results, limiting to the top 5
     const urls = response.data.organic_results
       .map(result => result.link)
       .slice(0, num_responses);
@@ -35,7 +33,7 @@ export async function querySerpApi(prompt: string, num_responses: number): Promi
   }
 }
 
-export async function queryChat(content: string, url: string): Promise<LLMResponse> {
+export async function queryChat(content: string, url: string): Promise<Executive[]> {
   try {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); 
 
@@ -57,7 +55,7 @@ export async function queryChat(content: string, url: string): Promise<LLMRespon
       return parseJobsFromResponse(response.choices[0].message?.content ?? '');
   } catch (error) {
     Logger.error('Error extracting jobs with LLM', error as Error);
-    return { executives: [] };
+    return [];
   }
 }
 
@@ -81,6 +79,58 @@ function createFocusedPrompt(content: string): string {
 
   'Refer to the following content: ${content}`;
 
+}
+
+export async function queryParaformAPI(company_domain: string): Promise<Executive[]> {
+  const url = `https://www.paraform.com/api/leads/find_from_domain?url=${company_domain}`;
+  try {
+    const response = await axios.get(url);
+
+    if (response.status === 200) {
+      const leads = response.data;
+      const apolloExecutives: Executive[] = leads.map((lead: any) => ({
+        name: lead.name,
+        title: lead.position,
+        linkedin: lead.linkedin_url
+      }));
+      return apolloExecutives;
+    } 
+    
+    else {
+      console.error(`Error: Received status code ${response.status}`);
+      return [];
+    }
+  } catch (error) {
+    console.error("Error fetching leads:", error);
+    return [];
+  }
+}
+
+export async function queryApolloAPI(company_domain: string): Promise<Executive[]> {
+  const url = `https://api.apollo.io/api/v1/organizations/enrich?domain=${company_domain}`;
+  const options: RequestInit = {
+    method: 'GET',
+    headers: {
+      accept: 'application/json',
+      'Cache-Control': 'no-cache',
+      'Content-Type': 'application/json',
+      'x-api-key': '3_RkqXYANJGYk3fXMY_GAA'
+    }
+  };
+
+  try {
+    const response = await fetch(url, options);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const json = await response.json();
+    console.log(json);
+  } catch (err) {
+    console.error("Failed to fetch organization details:", err);
+  }
+  return [];
 }
 
 

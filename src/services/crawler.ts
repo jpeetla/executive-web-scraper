@@ -3,7 +3,7 @@ import { Logger } from '../utils/logger';
 import { CrawlerOptions, Executive } from '../types';
 import { MAX_DEPTH, MAX_CONCURRENT_REQUESTS } from '../config/constants';
 import { serp_query_one, serp_query_two, serp_query_three } from '../config/constants';
-import { querySerpApi } from './query_api';
+import { querySerpApi, queryParaformAPI, queryApolloAPI } from './query_api';
 import { scrapeURLs } from './webpage_content';
 
 export class Crawler {
@@ -32,39 +32,59 @@ export class Crawler {
     });
   }
 
+  async checkAndScrapeURLS(company_name: string, query: string, scrapedURLs: string[]): Promise<string[]> {
+    const resulting_urls = await querySerpApi(`${company_name} ${query}`, 4);
+    let newURLs = await this.filterUrlsByCompany(resulting_urls, company_name, scrapedURLs);
+    return newURLs;
+  }
+
   async scrape(company_name: string): Promise<Executive[]> {
     try {
       company_name = this.extractDomain(company_name);
-      console.log("company_name", company_name);
       let scrapedURLs: string[] = [];
       const executivesData: Executive[] = [];
 
-      const checkAndScrapeURLs = async (company_name: string, query: string) => {
-        const resulting_urls = await querySerpApi(`${company_name} ${query}`, 4);
-        console.log(resulting_urls);  
-        let newURLs = await this.filterUrlsByCompany(resulting_urls, company_name, scrapedURLs);
-        console.log(newURLs);
-        scrapedURLs.push(...newURLs);
-        const executivesFound = await scrapeURLs(newURLs, this.httpClient);
-        executivesData.push(...executivesFound);
-      };
+      const queryA = `${company_name} ${serp_query_one}`;
+      const urlsOne = await this.checkAndScrapeURLS(company_name, serp_query_one, scrapedURLs);
+      scrapedURLs.push(...urlsOne);
 
-      await checkAndScrapeURLs(company_name, serp_query_one);
+      const queryB = `${serp_query_two} ${company_name}`;
+      const urlsTwo = await this.checkAndScrapeURLS(company_name, serp_query_one, scrapedURLs);
+      scrapedURLs.push(...urlsTwo);
 
-      if (executivesData.length === 0) {
-        Logger.info('No executives found in first query, trying second query...');
-        await checkAndScrapeURLs(company_name, serp_query_two);
+      const queryC = `${company_name} ${serp_query_three}`;
+      const urlsThree = await this.checkAndScrapeURLS(company_name, serp_query_one, scrapedURLs);
+      scrapedURLs.push(...urlsThree);
+      console.log(scrapeURLs);
+
+      const executivesFound = await scrapeURLs(company_name, scrapedURLs, this.httpClient);
+      executivesData.push(...executivesFound);
+
+      const apolloExecutivesFound: Executive[] = [];
+      if (executivesData.length < 10) {
+        const apolloLeads = await queryApolloAPI(company_name);
+
       }
-
-      if (executivesData.length === 0) {
-        Logger.info('No executives found in second query, trying third query...');
-        await checkAndScrapeURLs(company_name, serp_query_three);
+      
+      const crustExecutivesFound: Executive[] = [];
+      if (executivesData.length < 4) {
+        const crustLeads = await queryParaformAPI(company_name);
+        crustLeads.forEach((lead) => {
+          const isDuplicate = executivesData.some((executive) => executive.name === lead.name);
+    
+          if (!isDuplicate) {
+            crustExecutivesFound.push({
+              domain: company_name,
+              name: lead.name,
+              title: lead.title,
+              linkedin: lead.linkedin
+            });
+          }
+        });
       }
-
-      //STEP #2: Query Apollo API
-      // if (executivesData.length === 0) {
-      //   console.log("Should que")
-      // }
+      console.log(`Data scraped from Crust API: ${crustExecutivesFound}`);
+      
+      executivesData.push(...crustExecutivesFound);
       return executivesData;
     } catch (error) {
       Logger.error('Error scraping company:', error as Error);

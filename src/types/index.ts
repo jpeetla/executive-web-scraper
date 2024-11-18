@@ -47,11 +47,8 @@ export class HttpError extends Error {
   }
 } 
 
-export interface LLMResponse {
-  executives: Executive[];
-}
-
 export interface Executive {
+  domain: string;
   name: string;
   title: string;
   linkedin: string;
