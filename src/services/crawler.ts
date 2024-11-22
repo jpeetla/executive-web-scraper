@@ -2,9 +2,9 @@ import { HttpClient } from './http-client';
 import { Logger } from '../utils/logger';
 import { CrawlerOptions, Executive } from '../types';
 import { MAX_DEPTH, MAX_CONCURRENT_REQUESTS } from '../config/constants';
-import { serp_query_one, serp_query_two, serp_query_three } from '../config/constants';
-import { querySerpApi, queryParaformAPI, queryApolloAPI } from './query_api';
-import { scrapeURLs } from './webpage_content';
+import { serp_query_one, serp_query_two, serp_query_three, serp_query_four } from '../config/constants';
+import { querySerpApi, queryParaformAPI, queryRawParaformAPI, queryChat } from './query_api';
+import { scrapeURLs, getLinkedinURLs } from './webpage_content';
 
 export class Crawler {
   private httpClient: HttpClient;
@@ -33,58 +33,74 @@ export class Crawler {
   }
 
   async checkAndScrapeURLS(company_name: string, query: string, scrapedURLs: string[]): Promise<string[]> {
-    const resulting_urls = await querySerpApi(`${company_name} ${query}`, 4);
+    const resulting_urls = await querySerpApi(`${company_name} ${query}`, 3);
     let newURLs = await this.filterUrlsByCompany(resulting_urls, company_name, scrapedURLs);
     return newURLs;
+  }
+
+  async deDupeAPI(company_name: string, apiLeads: Executive[], existingLeads: Executive[]): Promise<Executive[]> {
+    const deDupedLeads: Executive[] = [];
+    
+    apiLeads.forEach((lead) => {
+      const isDuplicate = existingLeads.some((executive) => executive.name === lead.name);
+      if (!isDuplicate) {
+        deDupedLeads.push({
+          domain: company_name,
+          name: lead.name,
+          title: lead.title,
+          linkedin: lead.linkedin,
+          source: lead.source
+        });
+      }
+    });
+  
+    return deDupedLeads;
   }
 
   async scrape(company_name: string): Promise<Executive[]> {
     try {
       company_name = this.extractDomain(company_name);
+      console.log(company_name);
       let scrapedURLs: string[] = [];
       const executivesData: Executive[] = [];
+      console.log(scrapedURLs);
 
-      const queryA = `${company_name} ${serp_query_one}`;
       const urlsOne = await this.checkAndScrapeURLS(company_name, serp_query_one, scrapedURLs);
       scrapedURLs.push(...urlsOne);
-
-      const queryB = `${serp_query_two} ${company_name}`;
-      const urlsTwo = await this.checkAndScrapeURLS(company_name, serp_query_one, scrapedURLs);
+      const urlsTwo = await this.checkAndScrapeURLS(company_name, serp_query_two, scrapedURLs);
       scrapedURLs.push(...urlsTwo);
-
-      const queryC = `${company_name} ${serp_query_three}`;
-      const urlsThree = await this.checkAndScrapeURLS(company_name, serp_query_one, scrapedURLs);
+      const urlsThree = await this.checkAndScrapeURLS(company_name, serp_query_three, scrapedURLs);
       scrapedURLs.push(...urlsThree);
-      console.log(scrapeURLs);
+      const urlsFour = await this.checkAndScrapeURLS(company_name, serp_query_four, scrapedURLs);
+      scrapedURLs.push(...urlsFour);
 
       const executivesFound = await scrapeURLs(company_name, scrapedURLs, this.httpClient);
       executivesData.push(...executivesFound);
 
-      const apolloExecutivesFound: Executive[] = [];
-      if (executivesData.length < 10) {
-        const apolloLeads = await queryApolloAPI(company_name);
+      // let deDupedApolloLeads: Executive[] = [];
+      // if (executivesData.length < 10) {
+      //   const apolloLeads = await queryApolloAPI(company_name);
+      //   deDupedApolloLeads = await this.deDupeAPI(company_name, apolloLeads, executivesData);
+      // }
+      // console.log(`Data scraped from Apollo API: ${deDupedApolloLeads}`);   
+      // executivesData.push(...deDupedApolloLeads);
+      
+      // let deDupedCrustLeads: Executive[] = [];
+      // const crustLeads = await queryParaformAPI(company_name);
+      // deDupedCrustLeads = await this.deDupeAPI(company_name, crustLeads, executivesData);
+      // Logger.info(`Pushing ${deDupedCrustLeads.length} leads from Crust...`)
+      // executivesData.push(...deDupedCrustLeads);
 
-      }
-      
-      const crustExecutivesFound: Executive[] = [];
-      if (executivesData.length < 4) {
-        const crustLeads = await queryParaformAPI(company_name);
-        crustLeads.forEach((lead) => {
-          const isDuplicate = executivesData.some((executive) => executive.name === lead.name);
-    
-          if (!isDuplicate) {
-            crustExecutivesFound.push({
-              domain: company_name,
-              name: lead.name,
-              title: lead.title,
-              linkedin: lead.linkedin
-            });
-          }
-        });
-      }
-      console.log(`Data scraped from Crust API: ${crustExecutivesFound}`);
-      
-      executivesData.push(...crustExecutivesFound);
+      const rawLeads = await queryRawParaformAPI(company_name);
+      let rawLeadsFound = await this.deDupeAPI(company_name, rawLeads, executivesData);
+      const leadsString = rawLeadsFound.map(lead =>
+        `Name: ${lead.name}\nTitle: ${lead.title}\nLinkedIn: ${lead.linkedin}\n`
+      ).join('\n');
+      const filteredRawParaformLeads = await queryChat(leadsString, company_name, "paraform");
+      const finalParaformLeads = await getLinkedinURLs(filteredRawParaformLeads, company_name);
+      Logger.info(`Pushing ${finalParaformLeads.length} leads from Paraform...`)
+      executivesData.push(...finalParaformLeads);
+
       return executivesData;
     } catch (error) {
       Logger.error('Error scraping company:', error as Error);

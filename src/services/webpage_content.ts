@@ -17,13 +17,23 @@ export async function cleanContentforLLM(content: string, url: string): Promise<
         return content;
     }
 
-    // Split into chunks of 6000 CHARACTERS & Return top 2 sections
+    var noStopWords = "";
     if (content.length > MAX_CHARS) {
-      Logger.info(`Extracting top 2 sections instead...`);
-      content = extractTopTwoSections(content);
-      content = removeStopWords(content);
+      noStopWords = removeStopWords(content);
     }
 
+    // Split into chunks of 6000 CHARACTERS & Return top 2 sections
+    if (noStopWords.length > MAX_CHARS) {
+      Logger.info(`Content too long, trying Puppeteer...`);
+      content = await puppeteerWebpageExtraction(url);
+    }
+
+    if (content.trim().length < 5000) {
+      Logger.info(`Puppeteer empty...`);
+      content += extractTopTwoSections(content);
+    }
+
+    console.log(content);
     return content;
   }
 
@@ -152,6 +162,35 @@ export function removeStopWords(text: string): string {
   return filteredTokens.join(' ');
 }
 
+export async function getLinkedinURLs(executives: Executive[], domain: string): Promise<Executive[]> {
+  var executivesData: Executive[] = [];
+
+  if (executives) {
+    for(const executive of executives) {
+      const linkedin_serp_results = await querySerpApi(`${executive.name} ${executive.title} LinkedIn`, 3);
+      const linkedinUrl = linkedin_serp_results.find(url => url.includes("linkedin.com/in")) || "";
+
+      const executiveObject: Executive = {
+        domain: domain,
+        name: executive.name,
+        title: executive.title,
+        linkedin: linkedinUrl,
+        source: executive.source
+      };
+      const isDuplicate = executivesData.some((existingExecutive) => existingExecutive.linkedin === executiveObject.linkedin);
+      if (!isDuplicate) {
+        executivesData.push(executiveObject);
+      } else {
+        Logger.warn(`Skipping duplicate executive: ${executive.name}`);
+      }          
+    }
+  }
+
+  return executivesData;
+}
+
+
+
 export async function scrapeURLs(domain: string, urls: string[], httpClient: HttpClient): Promise<Executive[]> {
   var executivesData: Executive[] = [];
   for (const url of urls) {
@@ -182,28 +221,9 @@ export async function scrapeURLs(domain: string, urls: string[], httpClient: Htt
         Logger.info(`No content extracted from ${url}, trying Puppeteer...`);
         cleanedContent = await puppeteerWebpageExtraction(url);
       }
-      const executives = await queryChat(cleanedContent, url);
+      const executives = await queryChat(cleanedContent, url, "webpage");
 
-      if (executives) {
-        for(const executive of executives) {
-          console.log(`Name: ${executive.name}, Title: ${executive.title}`);
-          const linkedin_serp_results = await querySerpApi(`${executive.name} ${executive.title} LinkedIn`, 3);
-          const linkedinUrl = linkedin_serp_results.find(url => url.includes("linkedin.com/in")) || "";
-
-          const executiveObject: Executive = {
-            domain: domain,
-            name: executive.name,
-            title: executive.title,
-            linkedin: linkedinUrl
-          };
-          const isDuplicate = executivesData.some((existingExecutive) => existingExecutive.linkedin === executiveObject.linkedin);
-          if (!isDuplicate) {
-            executivesData.push(executiveObject);
-          } else {
-            Logger.warn(`Skipping duplicate executive: ${executive.name}`);
-          }          
-        }
-      }
+      executivesData = await getLinkedinURLs(executives, domain);
       return executivesData;
     } catch (error) {
       Logger.warn(`Error fetching job page for ${url} ${error}:`);

@@ -52,4 +52,5 @@ export interface Executive {
   name: string;
   title: string;
   linkedin: string;
+  source: string;
 }

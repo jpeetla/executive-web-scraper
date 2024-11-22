@@ -1,16 +1,17 @@
 import fs from 'fs';
 import { createObjectCsvWriter } from 'csv-writer';
 import { Crawler } from './crawler';
-import { TESTING_DOMAINS, missingDomains } from '../config/constants';
 import { Logger } from '../utils/logger';
+import { testing_domains } from '../config/constants';
 
 const csvWriter = createObjectCsvWriter({
-    path: 'missing_domains.csv',
+    path: 'sapphireportfolioresults.csv',
     header: [
       { id: 'company_name', title: 'Domain' },
       { id: 'executive_name', title: 'Executive_Name' },
       { id: 'role_title', title: 'Role_Title' },
-      { id: 'linkedin_url', title: 'Linkedin' }
+      { id: 'linkedin_url', title: 'Linkedin' },
+      { id: 'source', title: 'Source'}
     ],
     append: true // Append to file if it exists
   });
@@ -19,7 +20,7 @@ export async function main() {
     let allResults = [];
     const crawler = new Crawler();
 
-    for (const domain of missingDomains) {
+    for (const domain of testing_domains) {
         try {
             Logger.info(`Scraping data for company: ${domain}`);
             const executivesData = await crawler.scrape(domain);
@@ -28,7 +29,8 @@ export async function main() {
                 company_name: domain,
                 executive_name: executive.name,
                 role_title: executive.title,
-                linkedin_url: executive.linkedin
+                linkedin_url: executive.linkedin,
+                source: executive.source
             }));
     
             allResults.push(...formattedData);
