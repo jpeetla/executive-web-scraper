@@ -37,32 +37,46 @@ export async function querySerpApi(
   }
 }
 
-export async function queryRawParaformAPI(
+export async function queryCrustAPI(
   company_domain: string
 ): Promise<Executive[]> {
-  const url = `https://www.paraform.com/api/leads/find_from_domain?url=${company_domain}&raw=true`;
   try {
-    const response = await axios.get(url);
+    const response = await fetch(
+      `https://api.crustdata.com/screener/person/search`,
+      {
+        headers: {
+          Authorization: `Token c4b46b513cc0bd3b0ae459c334f1231f1af97000`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        method: "POST",
+        body: JSON.stringify({
+          filters: [
+            {
+              filter_type: "CURRENT_COMPANY",
+              type: "in",
+              value: [company_domain],
+            },
+          ],
+          page: 1,
+        }),
+      }
+    );
 
-    if (response.status === 200) {
-      const leads = response.data;
+    const data = await response.json();
+    const rawCrustLeads: Executive[] = data.profiles.map((lead: any) => ({
+      domain: company_domain,
+      name: lead.name,
+      title: lead.default_position_title,
+      linkedin: lead.linkedin_profile_url,
+      source: "crust",
+    }));
 
-      const rawParaformLeads: Executive[] = leads.profiles.map((lead: any) => ({
-        domain: company_domain,
-        name: lead.name,
-        title: lead.default_position_title,
-        linkedin: lead.linkedin_profile_url,
-        source: "crust",
-      }));
-
-      return rawParaformLeads;
-    } else {
-      Logger.info(`Error: Received status code ${response.status}`);
-      return [];
-    }
+    return rawCrustLeads;
   } catch (error) {
-    return [];
+    Logger.info(`Error fetching crust data: ${error}`);
   }
+  return [];
 }
 
 export async function queryApolloAPI(

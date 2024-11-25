@@ -8,8 +8,8 @@ import {
   serp_query_three,
   serp_query_four,
 } from "../config/constants";
-import { querySerpApi, queryRawParaformAPI } from "./query_api";
-import { scrapeURLs, getLinkedinURLs } from "./extract_webpage";
+import { querySerpApi, queryCrustAPI } from "./query_api";
+import { scrapeURLs } from "./extract_webpage";
 import { queryChat } from "./query_chat";
 
 export class Crawler {
@@ -130,7 +130,7 @@ export class Crawler {
 
       // STEP #2: Hit CRUST API in case not enough executives are found
       if (executivesData.length < 5) {
-        const rawLeads = await queryRawParaformAPI(company_name);
+        const rawLeads = await queryCrustAPI(company_name);
         let rawLeadsFound = await this.deDupeAPI(
           company_name,
           rawLeads,
