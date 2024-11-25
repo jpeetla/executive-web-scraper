@@ -2,19 +2,81 @@ export const DEFAULT_TIMEOUT = 10000; // 10 seconds
 export const MAX_CONCURRENT_REQUESTS = 3;
 export const MAX_DEPTH = 2;
 
-export const USER_AGENT = 'Mozilla/5.0 (compatible; JobScraperBot/1.0; +http://example.com/bot)';
+export const USER_AGENT =
+  "Mozilla/5.0 (compatible; JobScraperBot/1.0; +http://example.com/bot)";
 
-export const COMMON_EXECUTIVE_KEYWORDS = [
-  'CEO', 'Founder', 'Vice President', 'Chief Executive Officer', 'Chief Operating Officer', 'Manager', 'Director', 'CTO', 'Chief Technical Officer',
-  'Lead', 'CFO', 'Chief Financial Officer', 'COO', 'Chief People Officer', 'VP of Talent Acquisition',
-  'VP of People', 'Chief of Staff', 'Head of Talent Acquisition,', 'Head of People', 'VP of Engineering', 'VP of Operations', 'Director of Engineering',
-  'Recruiter', 'associate', 'assistant', 'intern'
+export const KEYWORDS = [
+  "leadership",
+  "co-founder",
+  "team",
+  "executive",
+  "board",
+  "leaders",
+  "directors",
+  "position",
+  "role",
+  "ceo",
+  "president",
+  "cfo",
+  "coo",
+  "chief",
+  "vp",
+  "vice president",
+  "management",
+  "founder",
+  "partner",
+  "owner",
+  "officer",
+  "chair",
+  "principal",
+  "advisor",
+  "head",
+  "executive team",
+  "leadership team",
+  "senior management",
+  "company officers",
+  "key personnel",
+  "corporate officers",
+  "governance",
+  "administration",
+  "executive committee",
+  "managing director",
 ];
 
-export const serp_query_one = 'leadership team OR board of directors OR executive profiles'
-export const serp_query_two = 'talent acquisition manager OR head of talent'
-export const serp_query_three = 'head of people OR chief people officer'
-export const serp_query_four = 'CTO OR CEO OR Head of Engineering'
+export const COMMON_EXECUTIVE_KEYWORDS = [
+  "CEO",
+  "Founder",
+  "Vice President",
+  "Chief Executive Officer",
+  "Chief Operating Officer",
+  "Manager",
+  "Director",
+  "CTO",
+  "Chief Technical Officer",
+  "Lead",
+  "CFO",
+  "Chief Financial Officer",
+  "COO",
+  "Chief People Officer",
+  "VP of Talent Acquisition",
+  "VP of People",
+  "Chief of Staff",
+  "Head of Talent Acquisition,",
+  "Head of People",
+  "VP of Engineering",
+  "VP of Operations",
+  "Director of Engineering",
+  "Recruiter",
+  "associate",
+  "assistant",
+  "intern",
+];
+
+export const serp_query_one =
+  "leadership team OR board of directors OR executive profiles";
+export const serp_query_two = "talent acquisition manager OR head of talent";
+export const serp_query_three = "head of people OR chief people officer";
+export const serp_query_four = "CTO OR CEO OR Head of Engineering";
 
 export const testing_domains = [
   "https://x.ai",
@@ -170,5 +232,5 @@ export const testing_domains = [
   "http://www.inspace.app",
   "https://travelsist.com",
   "https://www.gesund.ai",
-  "https://www.luminolabs.ai"
+  "https://www.luminolabs.ai",
 ];
