@@ -2,7 +2,7 @@ import axios from 'axios';
 import { Executive } from '../types';
 import { Logger } from '../utils/logger';
 import { OpenAI } from 'openai';
-import { parseJobsFromResponse } from './webpage_content'
+import { parseJobsFromResponse, parseParaformFilter } from './webpage_content'
 import fetch, { RequestInit } from "node-fetch";
 
 interface SerpApiResponse {
@@ -33,19 +33,10 @@ export async function querySerpApi(prompt: string, num_responses: number): Promi
   }
 }
 
-export async function queryChat(content: string, url: string, query: string): Promise<Executive[]> {
+export async function queryChat(content: string): Promise<Executive[]> {
   try {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); 
-
-    let query_content = "";
-
-    if (query == "paraform") {
-      query_content = passParaformContent(content);
-    } 
     
-    else {
-      query_content = passWebpageContent(content);
-    }
     const response = await openai.chat.completions.create({
         model: "gpt-4o",
         messages: [{
@@ -56,12 +47,38 @@ export async function queryChat(content: string, url: string, query: string): Pr
           content: passWebpageContent(content)
         }],
         response_format: { type: "json_object" },
-        max_tokens: 1000, // Leave room for response
+        max_tokens: 1000, 
         temperature: 0,
         stop: ["\n\n"]
       });
 
       return parseJobsFromResponse(response.choices[0].message?.content ?? '');
+  } catch (error) {
+    Logger.error('Error extracting jobs with LLM', error as Error);
+    return [];
+  }
+}
+
+export async function filterParaformData(content: string): Promise<Executive[]> {
+  try {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); 
+    
+    const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{
+          role: "system",
+          content: "I will give you a chunk of text that contains information about the company's top executives. Please parse it and return a json of the top executive's names and their ."
+        }, {
+          role: "user",
+          content: passParaformContent(content)
+        }],
+        response_format: { type: "json_object" },
+        max_tokens: 1000, 
+        temperature: 0,
+        stop: ["\n\n"]
+      });
+
+      return parseParaformFilter(response.choices[0].message?.content ?? '');
   } catch (error) {
     Logger.error('Error extracting jobs with LLM', error as Error);
     return [];
@@ -108,34 +125,6 @@ function passParaformContent(content: string) {
   Only return the JSON format with no additional text. If no relevant executives are found, return an empty array.
 
   'Refer to the following content: ${content}`;
-}
-
-export async function queryParaformAPI(company_domain: string): Promise<Executive[]> {
-  const url = `https://www.paraform.com/api/leads/find_from_domain?url=${company_domain}`;
-  try {
-    const response = await axios.get(url);
-
-    if (response.status === 200) {
-      const leads = response.data;
-
-      const paraformLeads: Executive[] = leads.map((lead: any) => ({
-        domain: company_domain,
-        name: lead.name,
-        title: lead.position,
-        linkedin: lead.linkedin_url,
-        source: "crust"
-      }));
-      return paraformLeads;
-    } 
-    
-    else {
-      console.error(`Error: Received status code ${response.status}`);
-      return [];
-    }
-  } catch (error) {
-    console.error("Error fetching leads:", error);
-    return [];
-  }
 }
 
 export async function queryRawParaformAPI(company_domain: string): Promise<Executive[]> {

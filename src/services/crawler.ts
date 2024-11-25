@@ -3,7 +3,7 @@ import { Logger } from '../utils/logger';
 import { CrawlerOptions, Executive } from '../types';
 import { MAX_DEPTH, MAX_CONCURRENT_REQUESTS } from '../config/constants';
 import { serp_query_one, serp_query_two, serp_query_three, serp_query_four } from '../config/constants';
-import { querySerpApi, queryParaformAPI, queryRawParaformAPI, queryChat } from './query_api';
+import { querySerpApi, queryRawParaformAPI, queryChat, filterParaformData } from './query_api';
 import { scrapeURLs, getLinkedinURLs } from './webpage_content';
 
 export class Crawler {
@@ -18,7 +18,7 @@ export class Crawler {
       maxConcurrentRequests: options?.maxConcurrentRequests ?? MAX_CONCURRENT_REQUESTS
     };
   }
-
+  
   extractDomain(url: string): string {
     const cleanedUrl = url.replace(/^https?:\/\//, '').replace(/^www\./, '');
     return cleanedUrl.split('/')[0];
@@ -60,10 +60,8 @@ export class Crawler {
   async scrape(company_name: string): Promise<Executive[]> {
     try {
       company_name = this.extractDomain(company_name);
-      console.log(company_name);
       let scrapedURLs: string[] = [];
       const executivesData: Executive[] = [];
-      console.log(scrapedURLs);
 
       const urlsOne = await this.checkAndScrapeURLS(company_name, serp_query_one, scrapedURLs);
       scrapedURLs.push(...urlsOne);
@@ -77,29 +75,16 @@ export class Crawler {
       const executivesFound = await scrapeURLs(company_name, scrapedURLs, this.httpClient);
       executivesData.push(...executivesFound);
 
-      // let deDupedApolloLeads: Executive[] = [];
-      // if (executivesData.length < 10) {
-      //   const apolloLeads = await queryApolloAPI(company_name);
-      //   deDupedApolloLeads = await this.deDupeAPI(company_name, apolloLeads, executivesData);
-      // }
-      // console.log(`Data scraped from Apollo API: ${deDupedApolloLeads}`);   
-      // executivesData.push(...deDupedApolloLeads);
-      
-      // let deDupedCrustLeads: Executive[] = [];
-      // const crustLeads = await queryParaformAPI(company_name);
-      // deDupedCrustLeads = await this.deDupeAPI(company_name, crustLeads, executivesData);
-      // Logger.info(`Pushing ${deDupedCrustLeads.length} leads from Crust...`)
-      // executivesData.push(...deDupedCrustLeads);
-
-      const rawLeads = await queryRawParaformAPI(company_name);
-      let rawLeadsFound = await this.deDupeAPI(company_name, rawLeads, executivesData);
-      const leadsString = rawLeadsFound.map(lead =>
-        `Name: ${lead.name}\nTitle: ${lead.title}\nLinkedIn: ${lead.linkedin}\n`
-      ).join('\n');
-      const filteredRawParaformLeads = await queryChat(leadsString, company_name, "paraform");
-      const finalParaformLeads = await getLinkedinURLs(filteredRawParaformLeads, company_name);
-      Logger.info(`Pushing ${finalParaformLeads.length} leads from Paraform...`)
-      executivesData.push(...finalParaformLeads);
+      if (executivesData.length < 5) {
+        const rawLeads = await queryRawParaformAPI(company_name);
+        let rawLeadsFound = await this.deDupeAPI(company_name, rawLeads, executivesData);
+        const leadsString = rawLeadsFound.map(lead =>
+          `Name: ${lead.name}\nTitle: ${lead.title}\nLinkedIn: ${lead.linkedin}\n`
+        ).join('\n');
+        const filteredRawParaformLeads = await filterParaformData(leadsString);
+        Logger.info(`Pushing ${filteredRawParaformLeads.length} leads from Paraform...`)
+        executivesData.push(...filteredRawParaformLeads);
+      }
 
       return executivesData;
     } catch (error) {

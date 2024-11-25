@@ -117,16 +117,34 @@ export function parseJobsFromResponse(response: string): Executive[] {
     try {
       const parsed = JSON.parse(response.trim());
   
-      // Map each executive to match the `Executive` interface
       const executives = (parsed.executives || []).map((executive: any) => ({
         name: executive.name || "",
-        title: executive.title || ""
+        title: executive.title || "",
+        source: "web"
       }));
   
       return executives;
     } catch (error) {
       Logger.error('Error parsing LLM response', error as Error);
-      return [];  // Return an empty array if parsing fails
+      return [];  
+    }
+  }
+
+export function parseParaformFilter(response: string): Executive[] {
+    try {
+      const parsed = JSON.parse(response.trim());
+  
+      const executives = (parsed.executives || []).map((executive: any) => ({
+        name: executive.name || "",
+        title: executive.title || "",
+        linkedin: executive.linkedin || "",
+        source: "crust"
+      }));
+  
+      return executives;
+    } catch (error) {
+      Logger.error('Error parsing LLM response', error as Error);
+      return [];  
     }
   }
   
@@ -190,7 +208,6 @@ export async function getLinkedinURLs(executives: Executive[], domain: string): 
 }
 
 
-
 export async function scrapeURLs(domain: string, urls: string[], httpClient: HttpClient): Promise<Executive[]> {
   var executivesData: Executive[] = [];
   for (const url of urls) {
@@ -221,7 +238,7 @@ export async function scrapeURLs(domain: string, urls: string[], httpClient: Htt
         Logger.info(`No content extracted from ${url}, trying Puppeteer...`);
         cleanedContent = await puppeteerWebpageExtraction(url);
       }
-      const executives = await queryChat(cleanedContent, url, "webpage");
+      const executives = await queryChat(cleanedContent);
 
       executivesData = await getLinkedinURLs(executives, domain);
       return executivesData;

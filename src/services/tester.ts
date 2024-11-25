@@ -1,24 +1,28 @@
-import fs from 'fs';
 import { createObjectCsvWriter } from 'csv-writer';
 import { Crawler } from './crawler';
 import { Logger } from '../utils/logger';
 import { testing_domains } from '../config/constants';
+import { Domain } from '../types';
 
 const csvWriter = createObjectCsvWriter({
-    path: 'sapphireportfolioresults.csv',
+    path: 'leads.csv',
     header: [
-      { id: 'company_name', title: 'Domain' },
-      { id: 'executive_name', title: 'Executive_Name' },
-      { id: 'role_title', title: 'Role_Title' },
-      { id: 'linkedin_url', title: 'Linkedin' },
-      { id: 'source', title: 'Source'}
+        { id: 'company_name', title: 'Company_Name' },
+        { id: 'domain', title: 'Domain' },
+        { id: 'executive_name', title: 'Executive_Name' },
+        { id: 'role_title', title: 'Role_Title' },
+        { id: 'linkedin_url', title: 'Linkedin' },
+        { id: 'source', title: 'Source'},
+        { id: 'investor_reference', title: 'Investor_Reference'},
+        { id: 'company_reference', title: 'Company_Reference'},
     ],
-    append: true // Append to file if it exists
+    append: true
   });
 
 export async function main() {
     let allResults = [];
     const crawler = new Crawler();
+    let filePath = '../../input.csv';
 
     for (const domain of testing_domains) {
         try {
@@ -26,11 +30,14 @@ export async function main() {
             const executivesData = await crawler.scrape(domain);
     
             const formattedData = executivesData.map(executive => ({
-                company_name: domain,
+                company_name: "",
+                domain: domain,
                 executive_name: executive.name,
                 role_title: executive.title,
                 linkedin_url: executive.linkedin,
-                source: executive.source
+                source: executive.source,
+                investor_reference: "",
+                company_reference: ""
             }));
     
             allResults.push(...formattedData);
@@ -41,9 +48,6 @@ export async function main() {
         
     }
 
-    console.log(allResults);
-
-    // split first name and last name in allResults
     allResults = allResults.map(result => {
         const [first_name, last_name] = result.executive_name.split(' ');
         return {
@@ -52,9 +56,7 @@ export async function main() {
             last_name
         };
     });
-    
-    console.log(allResults);
-    
+        
     try {
         await csvWriter.writeRecords(allResults);
         Logger.info('Data written to executives_data.csv successfully');

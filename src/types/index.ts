@@ -47,6 +47,13 @@ export class HttpError extends Error {
   }
 } 
 
+export interface Domain {
+  name: string;
+  domain: string;
+  investorReference: string;
+  companyReference: string;
+}
+
 export interface Executive {
   domain: string;
   name: string;
