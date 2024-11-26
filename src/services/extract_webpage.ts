@@ -107,7 +107,11 @@ function calculateJobContentScore(text: string): number {
 }
 
 export async function puppeteerWebpageExtraction(url: string): Promise<string> {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    executablePath: "/usr/bin/chromium-browser", // Adjust the path based on installation
+  });
   const page = await browser.newPage();
 
   try {
