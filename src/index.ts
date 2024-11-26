@@ -18,8 +18,9 @@ app.get("/health", (req, res) => {
 // Single website scraping endpoint
 app.post("/scrape", async (req, res) => {
   try {
-    const { domain, company_name, investor_reference, company_reference } =
+    const { domain, companyName, investorReference, companyReference } =
       req.body;
+    console.log(domain);
 
     if (!domain) {
       return res.status(400).json({ error: "URL is required" });
@@ -31,13 +32,13 @@ app.post("/scrape", async (req, res) => {
       "https://paraform-smartleads-xi.vercel.app/api/receiveCompanyExecutiveWSData",
       {
         results,
-        company_name,
-        investor_reference,
-        company_reference,
+        companyName,
+        investorReference,
+        companyReference,
       }
     );
 
-    res.json(results);
+    // res.json(results);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
@@ -50,7 +51,7 @@ app.get("/test", async (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

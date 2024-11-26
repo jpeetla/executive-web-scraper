@@ -123,7 +123,8 @@ export class Crawler {
       const executivesFound = await scrapeURLs(
         company_name,
         scrapedURLs,
-        this.httpClient
+        this.httpClient,
+        company_name
       );
       executivesData.push(...executivesFound);
       Logger.info(`Scraped ${executivesData.length} leads from the web...`);
@@ -142,7 +143,11 @@ export class Crawler {
               `Name: ${lead.name}\nTitle: ${lead.title}\nLinkedIn: ${lead.linkedin}\n`
           )
           .join("\n");
-        const filteredRawParaformLeads = await queryChat(leadsString, "crust");
+        const filteredRawParaformLeads = await queryChat(
+          leadsString,
+          "crust",
+          company_name
+        );
         Logger.info(
           `Pushing ${filteredRawParaformLeads.length} leads from Paraform...`
         );

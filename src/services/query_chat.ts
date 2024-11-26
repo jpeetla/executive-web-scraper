@@ -4,7 +4,8 @@ import { Logger } from "../utils/logger";
 
 export async function queryChat(
   content: string,
-  queryType: string
+  queryType: string,
+  company_name: string
 ): Promise<Executive[]> {
   try {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -30,7 +31,8 @@ export async function queryChat(
 
     return parseJobsFromResponse(
       response.choices[0].message?.content ?? "",
-      queryType
+      queryType,
+      company_name
     );
   } catch (error) {
     Logger.error("Error extracting jobs with LLM", error as Error);
@@ -70,7 +72,8 @@ function contentForChat(content: string, queryType: string) {
 
 function parseJobsFromResponse(
   response: string,
-  queryType: string
+  queryType: string,
+  company_name: string
 ): Executive[] {
   try {
     const parsed = JSON.parse(response.trim());
@@ -83,7 +86,11 @@ function parseJobsFromResponse(
       };
 
       if (queryType === "crust") {
-        return { ...baseExecutive, linkedin: executive.linkedin || "" };
+        return {
+          ...baseExecutive,
+          linkedin: executive.linkedin || "",
+          domain: company_name || "",
+        };
       }
 
       return baseExecutive;

@@ -107,11 +107,7 @@ function calculateJobContentScore(text: string): number {
 }
 
 export async function puppeteerWebpageExtraction(url: string): Promise<string> {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    executablePath: "/usr/bin/chromium-browser", 
-  });
+  const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
   try {
@@ -185,7 +181,8 @@ export async function getLinkedinURLs(
 export async function scrapeURLs(
   domain: string,
   urls: string[],
-  httpClient: HttpClient
+  httpClient: HttpClient,
+  company_name: string
 ): Promise<Executive[]> {
   var executivesData: Executive[] = [];
   for (const url of urls) {
@@ -219,7 +216,11 @@ export async function scrapeURLs(
         Logger.info(`No content extracted from ${url}, trying Puppeteer...`);
         cleanedContent = await puppeteerWebpageExtraction(url);
       }
-      const executives = await queryChat(cleanedContent, "webpage");
+      const executives = await queryChat(
+        cleanedContent,
+        "webpage",
+        company_name
+      );
       executivesData = await getLinkedinURLs(executives, domain);
 
       return executivesData;
