@@ -16,18 +16,16 @@ app.get("/health", (req, res) => {
 });
 
 // Single website scraping endpoint
-app.get("/scrape", async (req, res) => {
+app.post("/scrape", async (req, res) => {
   try {
-    const { domain } = req.query;
-    const { company_name } = req.query;
-    const { investor_reference } = req.query;
-    const { company_reference } = req.query;
+    const { domain, company_name, investor_reference, company_reference } =
+      req.body;
 
     if (!domain) {
       return res.status(400).json({ error: "URL is required" });
     }
 
-    const results = await crawler.scrape(domain as string);
+    const results = await crawler.scrape(domain);
 
     await axios.post(
       "https://paraform-smartleads-xi.vercel.app/api/receiveCompanyExecutiveWSData",
