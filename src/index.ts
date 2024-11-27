@@ -18,8 +18,13 @@ app.get("/health", (req, res) => {
 // Single website scraping endpoint
 app.post("/scrape", async (req, res) => {
   try {
-    const { domain, companyName, investorReference, companyReference } =
-      req.body;
+    const {
+      fileName,
+      domain,
+      companyName,
+      investorReference,
+      companyReference,
+    } = req.body;
     console.log(domain);
 
     if (!domain) {
@@ -31,6 +36,7 @@ app.post("/scrape", async (req, res) => {
     await axios.post(
       "https://paraform-smartleads-xi.vercel.app/api/receiveCompanyExecutiveWSData",
       {
+        fileName,
         results,
         companyName,
         investorReference,
