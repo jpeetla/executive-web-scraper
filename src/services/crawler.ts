@@ -8,7 +8,7 @@ import {
   serp_query_three,
   serp_query_four,
 } from "../config/constants";
-import { querySerpApi, queryCrustAPI } from "./query_api";
+import { querySerpApi, queryCrustAPI, queryApolloAPI } from "./query_api";
 import { scrapeURLs } from "./extract_webpage";
 import { queryChat } from "./query_chat";
 
@@ -154,6 +154,7 @@ export class Crawler {
         executivesData.push(...filteredRawParaformLeads);
       }
 
+      // const results = await queryApolloAPI(company_name);
       return executivesData;
     } catch (error) {
       Logger.error("Error scraping company:", error as Error);

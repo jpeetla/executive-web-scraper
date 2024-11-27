@@ -44,6 +44,17 @@ app.post("/scrape", async (req, res) => {
       }
     );
 
+    // await axios.post(
+    //   "http://localhost:3000/api/receiveCompanyExecutiveWSData",
+    //   {
+    //     fileName,
+    //     results,
+    //     companyName,
+    //     investorReference,
+    //     companyReference,
+    //   }
+    // );
+
     // res.json(results);
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });

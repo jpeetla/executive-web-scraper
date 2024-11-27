@@ -148,7 +148,7 @@ export async function getLinkedinURLs(
   if (executives) {
     for (const executive of executives) {
       const linkedin_serp_results = await querySerpApi(
-        `${executive.name} ${executive.title} LinkedIn`,
+        `${executive.name} ${executive.title} ${domain} LinkedIn`,
         3
       );
       const linkedinUrl =
