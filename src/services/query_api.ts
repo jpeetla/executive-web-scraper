@@ -64,11 +64,12 @@ export async function queryCrustAPI(
     );
 
     const data = await response.json();
+
     const rawCrustLeads: Executive[] = data.profiles.map((lead: any) => ({
       domain: company_domain,
       name: lead.name,
       title: lead.default_position_title,
-      linkedin: lead.linkedin_profile_url,
+      linkedin: lead.flagship_profile_url,
       source: "crust",
     }));
 
