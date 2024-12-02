@@ -95,39 +95,39 @@ export class Crawler {
       const executivesData: Executive[] = [];
 
       // STEP #1: Test various SERP API queries to find relevant URLs
-      const urlsOne = await this.checkAndScrapeURLS(
-        company_name,
-        serp_query_one,
-        scrapedURLs
-      );
-      scrapedURLs.push(...urlsOne);
-      const urlsTwo = await this.checkAndScrapeURLS(
-        company_name,
-        serp_query_two,
-        scrapedURLs
-      );
-      scrapedURLs.push(...urlsTwo);
-      const urlsThree = await this.checkAndScrapeURLS(
-        company_name,
-        serp_query_three,
-        scrapedURLs
-      );
-      scrapedURLs.push(...urlsThree);
-      const urlsFour = await this.checkAndScrapeURLS(
-        company_name,
-        serp_query_four,
-        scrapedURLs
-      );
-      scrapedURLs.push(...urlsFour);
+      // const urlsOne = await this.checkAndScrapeURLS(
+      //   company_name,
+      //   serp_query_one,
+      //   scrapedURLs
+      // );
+      // scrapedURLs.push(...urlsOne);
+      // const urlsTwo = await this.checkAndScrapeURLS(
+      //   company_name,
+      //   serp_query_two,
+      //   scrapedURLs
+      // );
+      // scrapedURLs.push(...urlsTwo);
+      // const urlsThree = await this.checkAndScrapeURLS(
+      //   company_name,
+      //   serp_query_three,
+      //   scrapedURLs
+      // );
+      // scrapedURLs.push(...urlsThree);
+      // const urlsFour = await this.checkAndScrapeURLS(
+      //   company_name,
+      //   serp_query_four,
+      //   scrapedURLs
+      // );
+      // scrapedURLs.push(...urlsFour);
 
-      const executivesFound = await scrapeURLs(
-        company_name,
-        scrapedURLs,
-        this.httpClient,
-        company_name
-      );
-      executivesData.push(...executivesFound);
-      Logger.info(`Scraped ${executivesData.length} leads from the web...`);
+      // const executivesFound = await scrapeURLs(
+      //   company_name,
+      //   scrapedURLs,
+      //   this.httpClient,
+      //   company_name
+      // );
+      // executivesData.push(...executivesFound);
+      // Logger.info(`Scraped ${executivesData.length} leads from the web...`);
 
       // // STEP #2: Hit CRUST API in case not enough executives are found
       if (executivesData.length < 5) {

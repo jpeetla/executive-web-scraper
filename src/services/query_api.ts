@@ -86,7 +86,23 @@ export async function queryApolloAPI(
   try {
     const url = "https://api.apollo.io/api/v1/mixed_people/search";
     const payload = {
-      person_seniorities: ["ceo", "director", "senior", "vp", "cto", "coo"],
+      person_seniorities: [
+        "ceo",
+        "cto",
+        "coo",
+        "chief people officer",
+        "vp of talent acquisition",
+        "vp of people",
+        "chief of staff",
+        "head of talent acquisition",
+        "head of people",
+        "vp of engineering",
+        "senior recruiter",
+        "vp of operations",
+        "director of engineering",
+        "recruiter",
+        "hiring",
+      ],
       q_organization_domains: company_domain,
     };
 
