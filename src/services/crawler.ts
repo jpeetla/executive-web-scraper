@@ -95,41 +95,41 @@ export class Crawler {
       const executivesData: Executive[] = [];
 
       // STEP #1: Test various SERP API queries to find relevant URLs
-      // const urlsOne = await this.checkAndScrapeURLS(
-      //   company_name,
-      //   serp_query_one,
-      //   scrapedURLs
-      // );
-      // scrapedURLs.push(...urlsOne);
-      // const urlsTwo = await this.checkAndScrapeURLS(
-      //   company_name,
-      //   serp_query_two,
-      //   scrapedURLs
-      // );
-      // scrapedURLs.push(...urlsTwo);
-      // const urlsThree = await this.checkAndScrapeURLS(
-      //   company_name,
-      //   serp_query_three,
-      //   scrapedURLs
-      // );
-      // scrapedURLs.push(...urlsThree);
-      // const urlsFour = await this.checkAndScrapeURLS(
-      //   company_name,
-      //   serp_query_four,
-      //   scrapedURLs
-      // );
-      // scrapedURLs.push(...urlsFour);
+      const urlsOne = await this.checkAndScrapeURLS(
+        company_name,
+        serp_query_one,
+        scrapedURLs
+      );
+      scrapedURLs.push(...urlsOne);
+      const urlsTwo = await this.checkAndScrapeURLS(
+        company_name,
+        serp_query_two,
+        scrapedURLs
+      );
+      scrapedURLs.push(...urlsTwo);
+      const urlsThree = await this.checkAndScrapeURLS(
+        company_name,
+        serp_query_three,
+        scrapedURLs
+      );
+      scrapedURLs.push(...urlsThree);
+      const urlsFour = await this.checkAndScrapeURLS(
+        company_name,
+        serp_query_four,
+        scrapedURLs
+      );
+      scrapedURLs.push(...urlsFour);
 
-      // const executivesFound = await scrapeURLs(
-      //   company_name,
-      //   scrapedURLs,
-      //   this.httpClient,
-      //   company_name
-      // );
-      // executivesData.push(...executivesFound);
-      // Logger.info(`Scraped ${executivesData.length} leads from the web...`);
+      const executivesFound = await scrapeURLs(
+        company_name,
+        scrapedURLs,
+        this.httpClient,
+        company_name
+      );
+      executivesData.push(...executivesFound);
+      Logger.info(`Scraped ${executivesData.length} leads from the web...`);
 
-      // // STEP #2: Hit CRUST API in case not enough executives are found
+      // STEP #2: Hit CRUST API in case not enough executives are found...
       if (executivesData.length < 5) {
         const rawLeads = await queryCrustAPI(company_name);
         let rawLeadsFound = await this.deDupeAPI(
@@ -154,6 +154,7 @@ export class Crawler {
         executivesData.push(...filteredRawParaformLeads);
       }
 
+      // STEP #3: Hit APOLLO API in case not enough executives are still not found...
       if (executivesData.length < 5) {
         const rawApolloLeads = await queryApolloAPI(company_name);
         let deDupedApolloLeads = await this.deDupeAPI(
@@ -161,17 +162,7 @@ export class Crawler {
           rawApolloLeads,
           executivesData
         );
-        // const leadsString = deDupedApolloLeads
-        //   .map(
-        //     (lead) =>
-        //       `Name: ${lead.name}\nTitle: ${lead.title}\nLinkedIn: ${lead.linkedin}\n`
-        //   )
-        //   .join("\n");
-        // const filteredApolloLeads = await queryChat(
-        //   leadsString,
-        //   "apollo",
-        //   company_name
-        // );
+
         Logger.info(
           `Pushing ${deDupedApolloLeads.length} leads from Apollo...`
         );

@@ -65,7 +65,7 @@ function contentForChat(content: string, queryType: string) {
     
     Exclude any roles that contain science-specific keywords or unrelated titles. 
     Do not include titles that contain words such as "Scientific," "Biology," "Science," "Research," or "Laboratory," unless the full title matches the specified roles above. 
-    Ignore any individuals listed under "Our Advisors," "Advisory Board," or similar sections. Do not consider advisors as company executives. Ignore anyone with positions at different companies.  
+    Ignore any individuals listed under "Our Advisors," "Advisory Board," or similar sections. If you find such a section, you can assume everyone throughout the rest of the content to be an advisor. Do not consider advisors as company executives. 
     Only return the JSON format with no additional text. If no relevant executives are found, return an empty array.
   
     'Refer to the following content: ${content}`;
