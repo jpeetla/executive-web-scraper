@@ -83,31 +83,31 @@ export async function queryCrustAPI(
 export async function queryApolloAPI(
   company_domain: string
 ): Promise<Executive[]> {
-  const url = "https://api.apollo.io/api/v1/mixed_people/search";
-  const payload = {
-    person_seniorities: ["ceo", "director", "senior", "vp", "cto", "coo"],
-    q_organization_domains: company_domain,
-  };
-
-  const apiKey = process.env.APOLLO_API_KEY;
-  if (!apiKey) {
-    throw new Error(
-      "API key is not defined. Set the APOLLO_API_KEY environment variable."
-    );
-  }
-
-  const options: RequestInit = {
-    method: "POST",
-    headers: {
-      "Cache-Control": "no-cache",
-      "Content-Type": "application/json",
-      accept: "application/json",
-      "x-api-key": apiKey,
-    },
-    body: JSON.stringify(payload),
-  };
-
   try {
+    const url = "https://api.apollo.io/api/v1/mixed_people/search";
+    const payload = {
+      person_seniorities: ["ceo", "director", "senior", "vp", "cto", "coo"],
+      q_organization_domains: company_domain,
+    };
+
+    const apiKey = process.env.APOLLO_API_KEY;
+    if (!apiKey) {
+      throw new Error(
+        "API key is not defined. Set the APOLLO_API_KEY environment variable."
+      );
+    }
+
+    const options: RequestInit = {
+      method: "POST",
+      headers: {
+        "Cache-Control": "no-cache",
+        "Content-Type": "application/json",
+        accept: "application/json",
+        "x-api-key": apiKey,
+      },
+      body: JSON.stringify(payload),
+    };
+
     const response = await fetch(url, options);
 
     if (!response.ok) {
@@ -118,8 +118,22 @@ export async function queryApolloAPI(
     }
 
     const json = await response.json();
+
+    const executives: Executive[] = json.people.map(
+      (person: { name: any; title: any; linkedin_url: any }) => {
+        return {
+          domain: company_domain,
+          name: person.name,
+          title: person.title,
+          linkedin: person.linkedin_url,
+          source: "apollo",
+        };
+      }
+    );
+
+    return executives;
   } catch (err) {
     console.error("Failed to fetch mixed people search:", err);
+    return [];
   }
-  return [];
 }

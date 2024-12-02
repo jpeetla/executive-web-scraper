@@ -37,15 +37,11 @@ export interface HttpResponse<T = any> {
 }
 
 export class HttpError extends Error {
-  constructor(
-    message: string,
-    public status?: number,
-    public url?: string
-  ) {
+  constructor(message: string, public status?: number, public url?: string) {
     super(message);
-    this.name = 'HttpError';
+    this.name = "HttpError";
   }
-} 
+}
 
 export interface Domain {
   name: string;

@@ -129,7 +129,7 @@ export class Crawler {
       executivesData.push(...executivesFound);
       Logger.info(`Scraped ${executivesData.length} leads from the web...`);
 
-      // STEP #2: Hit CRUST API in case not enough executives are found
+      // // STEP #2: Hit CRUST API in case not enough executives are found
       if (executivesData.length < 5) {
         const rawLeads = await queryCrustAPI(company_name);
         let rawLeadsFound = await this.deDupeAPI(
@@ -154,7 +154,29 @@ export class Crawler {
         executivesData.push(...filteredRawParaformLeads);
       }
 
-      // const results = await queryApolloAPI(company_name);
+      if (executivesData.length < 5) {
+        const rawApolloLeads = await queryApolloAPI(company_name);
+        let deDupedApolloLeads = await this.deDupeAPI(
+          company_name,
+          rawApolloLeads,
+          executivesData
+        );
+        // const leadsString = deDupedApolloLeads
+        //   .map(
+        //     (lead) =>
+        //       `Name: ${lead.name}\nTitle: ${lead.title}\nLinkedIn: ${lead.linkedin}\n`
+        //   )
+        //   .join("\n");
+        // const filteredApolloLeads = await queryChat(
+        //   leadsString,
+        //   "apollo",
+        //   company_name
+        // );
+        Logger.info(
+          `Pushing ${deDupedApolloLeads.length} leads from Apollo...`
+        );
+        executivesData.push(...deDupedApolloLeads);
+      }
       return executivesData;
     } catch (error) {
       Logger.error("Error scraping company:", error as Error);
