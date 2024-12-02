@@ -43,6 +43,27 @@ export const KEYWORDS = [
   "managing director",
 ];
 
+export const CRUST_POSITIONS = [
+  "Founder",
+  "Co-Founder",
+  "CEO",
+  "CTO",
+  "COO",
+  "Chief People Officer",
+  "VP of Talent",
+  "VP of People",
+  "Chief of staff",
+  "Head of Talent",
+  "Vice President of Talent",
+  "Head of People",
+  "VP of Engineering",
+  "VP of Operations",
+  "Director of Engineering",
+  "CFO",
+  "VP of Sales",
+  "CMO",
+];
+
 export const COMMON_EXECUTIVE_KEYWORDS = [
   "CEO",
   "Founder",

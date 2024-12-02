@@ -1,6 +1,7 @@
 import axios from "axios";
 import { Executive } from "../types";
 import { Logger } from "../utils/logger";
+import { CRUST_POSITIONS } from "../config/constants";
 import fetch, { RequestInit } from "node-fetch";
 
 interface SerpApiResponse {
@@ -41,6 +42,10 @@ export async function queryCrustAPI(
   company_domain: string
 ): Promise<Executive[]> {
   try {
+    const lower_case_current_positions = CRUST_POSITIONS.map((position) =>
+      position.toLowerCase()
+    );
+
     const response = await fetch(
       `https://api.crustdata.com/screener/person/search`,
       {
@@ -52,6 +57,11 @@ export async function queryCrustAPI(
         method: "POST",
         body: JSON.stringify({
           filters: [
+            {
+              filter_type: "CURRENT_TITLE",
+              type: "in",
+              value: CRUST_POSITIONS,
+            },
             {
               filter_type: "CURRENT_COMPANY",
               type: "in",
@@ -65,7 +75,60 @@ export async function queryCrustAPI(
 
     const data = await response.json();
 
-    const rawCrustLeads: Executive[] = data.profiles.map((lead: any) => ({
+    const profiles_found = data.profiles.filter((profile: any) => {
+      const current_positions = profile.employer.filter(
+        (employer: any) => !employer.end_date
+      );
+      return current_positions.some((position: any) =>
+        lower_case_current_positions.some((current_position) =>
+          position.title.toLowerCase().includes(current_position)
+        )
+      );
+    });
+
+    const company_counts = profiles_found.reduce((acc: any, profile: any) => {
+      const default_position_company_linkedin_id =
+        profile.default_position_company_linkedin_id;
+      if (acc[default_position_company_linkedin_id]) {
+        acc[default_position_company_linkedin_id] += 1;
+      } else {
+        acc[default_position_company_linkedin_id] = 1;
+      }
+      return acc;
+    }, {});
+
+    const sorted_company_counts = Object.entries(company_counts).sort(
+      (a: any, b: any) => b[1] - a[1]
+    );
+
+    const most_common_linkedin_id = sorted_company_counts[0][0];
+    const found_linkedins = profiles_found
+      .filter(
+        (result: any) =>
+          result.default_position_company_linkedin_id ===
+            most_common_linkedin_id && !!result.name
+      )
+      .filter((result: any) => {
+        const current_positions = result.employer.filter(
+          (employer: any) => !employer.end_date
+        );
+        return current_positions.some(
+          (position: any) =>
+            position.company_linkedin_id === most_common_linkedin_id &&
+            lower_case_current_positions.some((current_position) =>
+              position.title.toLowerCase().includes(current_position)
+            )
+        );
+      })
+      .map((result: any) => {
+        return {
+          name: result.name,
+          linkedin_url: result.linkedin_profile_url,
+          position: result.default_position_title,
+        };
+      });
+
+    const rawCrustLeads: Executive[] = found_linkedins.map((lead: any) => ({
       domain: company_domain,
       name: lead.name,
       title: lead.default_position_title,
@@ -90,6 +153,8 @@ export async function queryApolloAPI(
         "ceo",
         "cto",
         "coo",
+        "senior",
+        "director",
         "chief people officer",
         "vp of talent acquisition",
         "vp of people",
