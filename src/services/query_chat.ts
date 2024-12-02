@@ -64,7 +64,8 @@ function contentForChat(content: string, queryType: string) {
     - Any roles that include the "Talent" keyword
     
     Exclude any roles that contain science-specific keywords or unrelated titles. 
-    Do not include titles that contain words such as "Scientific," "Biology," "Science," "Research," or "Laboratory," unless the full title matches the specified roles above.  
+    Do not include titles that contain words such as "Scientific," "Biology," "Science," "Research," or "Laboratory," unless the full title matches the specified roles above. 
+    Extract only company executives, such as C-level employees, VPs, and directors, from the following content. Ignore any individuals listed under "Our Advisors," "Advisory Board," or similar sections. Do not consider advisors as company executives. 
     Only return the JSON format with no additional text. If no relevant executives are found, return an empty array.
   
     'Refer to the following content: ${content}`;
