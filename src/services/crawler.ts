@@ -95,30 +95,21 @@ export class Crawler {
       const executivesData: Executive[] = [];
 
       // STEP #1: Test various SERP API queries to find relevant URLs
-      const urlsOne = await this.checkAndScrapeURLS(
-        company_name,
+      const serp_queries = [
         serp_query_one,
-        scrapedURLs
-      );
-      scrapedURLs.push(...urlsOne);
-      const urlsTwo = await this.checkAndScrapeURLS(
-        company_name,
         serp_query_two,
-        scrapedURLs
-      );
-      scrapedURLs.push(...urlsTwo);
-      const urlsThree = await this.checkAndScrapeURLS(
-        company_name,
         serp_query_three,
-        scrapedURLs
-      );
-      scrapedURLs.push(...urlsThree);
-      const urlsFour = await this.checkAndScrapeURLS(
-        company_name,
         serp_query_four,
-        scrapedURLs
-      );
-      scrapedURLs.push(...urlsFour);
+      ];
+
+      for (let query in serp_queries) {
+        const urls = await this.checkAndScrapeURLS(
+          company_name,
+          query,
+          scrapedURLs
+        );
+        scrapedURLs.push(...urls);
+      }
 
       const executivesFound = await scrapeURLs(
         company_name,
@@ -126,48 +117,48 @@ export class Crawler {
         this.httpClient,
         company_name
       );
+
       executivesData.push(...executivesFound);
       Logger.info(`Scraped ${executivesData.length} leads from the web...`);
 
       // STEP #2: Hit CRUST API in case not enough executives are found...
-      if (executivesData.length < 5) {
-        const rawLeads = await queryCrustAPI(company_name);
-        let rawLeadsFound = await this.deDupeAPI(
-          company_name,
-          rawLeads,
-          executivesData
-        );
-        const leadsString = rawLeadsFound
-          .map(
-            (lead) =>
-              `Name: ${lead.name}\nTitle: ${lead.title}\nLinkedIn: ${lead.linkedin}\n`
-          )
-          .join("\n");
-        const filteredRawParaformLeads = await queryChat(
-          leadsString,
-          "crust",
-          company_name
-        );
-        Logger.info(
-          `Pushing ${filteredRawParaformLeads.length} leads from Paraform...`
-        );
-        executivesData.push(...filteredRawParaformLeads);
-      }
+      // if (executivesData.length < 5) {
+      //   const rawLeads = await queryCrustAPI(company_name);
+      //   let rawLeadsFound = await this.deDupeAPI(
+      //     company_name,
+      //     rawLeads,
+      //     executivesData
+      //   );
+      //   const leadsString = rawLeadsFound
+      //     .map(
+      //       (lead) =>
+      //         `Name: ${lead.name}\nTitle: ${lead.title}\nLinkedIn: ${lead.linkedin}\n`
+      //     )
+      //     .join("\n");
+      //   const filteredRawParaformLeads = await queryChat(
+      //     leadsString,
+      //     "crust",
+      //     company_name
+      //   );
+      //   Logger.info(
+      //     `Pushing ${filteredRawParaformLeads.length} leads from Paraform...`
+      //   );
+      //   executivesData.push(...filteredRawParaformLeads);
+      // }
 
       // STEP #3: Hit APOLLO API in case not enough executives are still not found...
-      if (executivesData.length < 5) {
-        const rawApolloLeads = await queryApolloAPI(company_name);
-        let deDupedApolloLeads = await this.deDupeAPI(
-          company_name,
-          rawApolloLeads,
-          executivesData
-        );
-
-        Logger.info(
-          `Pushing ${deDupedApolloLeads.length} leads from Apollo...`
-        );
-        executivesData.push(...deDupedApolloLeads);
-      }
+      // if (executivesData.length < 5) {
+      //   const rawApolloLeads = await queryApolloAPI(company_name);
+      //   let deDupedApolloLeads = await this.deDupeAPI(
+      //     company_name,
+      //     rawApolloLeads,
+      //     executivesData
+      //   );
+      //   Logger.info(
+      //     `Pushing ${deDupedApolloLeads.length} leads from Apollo...`
+      //   );
+      //   executivesData.push(...deDupedApolloLeads);
+      // }
       return executivesData;
     } catch (error) {
       Logger.error("Error scraping company:", error as Error);

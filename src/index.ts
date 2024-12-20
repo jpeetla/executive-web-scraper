@@ -2,7 +2,6 @@ import dotenv from "dotenv";
 import express from "express";
 import { Crawler } from "./services/crawler";
 import { main } from "./services/tester";
-import axios from "axios";
 
 dotenv.config();
 const app = express();
@@ -33,16 +32,16 @@ app.post("/scrape", async (req, res) => {
 
     const results = await crawler.scrape(domain);
 
-    await axios.post(
-      "https://paraform-smartleads-xi.vercel.app/api/receiveCompanyExecutiveWSData",
-      {
-        fileName,
-        results,
-        companyName,
-        investorReference,
-        companyReference,
-      }
-    );
+    // await axios.post(
+    //   "https://paraform-smartleads-xi.vercel.app/api/receiveCompanyExecutiveWSData",
+    //   {
+    //     fileName,
+    //     results,
+    //     companyName,
+    //     investorReference,
+    //     companyReference,
+    //   }
+    // );
 
     // await axios.post(
     //   "http://localhost:3000/api/receiveCompanyExecutiveWSData",

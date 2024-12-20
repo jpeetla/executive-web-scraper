@@ -37,7 +37,6 @@ export async function cleanContentforLLM(
     content += extractTopTwoSections(content);
   }
 
-  console.log(content);
   return content;
 }
 
@@ -55,7 +54,7 @@ function extractTopTwoSections(content: string): string {
   // Score each chunk and keep track of the top two sections
   const scoredSections = sections.map((section) => ({
     section,
-    score: calculateJobContentScore(section),
+    score: calculateSectionContentScore(section),
   }));
 
   // Sort sections by score in descending order and select the top two
@@ -81,7 +80,7 @@ function extractTopTwoSections(content: string): string {
   return combinedSections;
 }
 
-function calculateJobContentScore(text: string): number {
+function calculateSectionContentScore(text: string): number {
   const MAX_TOKENS = 1500;
   const lowerText = text.toLowerCase();
   let score = 0;
@@ -221,14 +220,15 @@ export async function scrapeURLs(
         "webpage",
         company_name
       );
-      executivesData = await getLinkedinURLs(executives, domain);
+      const executivesFromURL = await getLinkedinURLs(executives, domain);
 
-      return executivesData;
+      Logger.info(`Found ${executivesFromURL.length} executives from ${url}`);
+      executivesData.push(...executivesFromURL);
     } catch (error) {
       Logger.warn(`Error fetching job page for ${url} ${error}:`);
       return [];
     }
   }
 
-  return [];
+  return executivesData;
 }
