@@ -122,29 +122,29 @@ export class Crawler {
       Logger.info(`Scraped ${executivesData.length} leads from the web...`);
 
       // STEP #2: Hit CRUST API in case not enough executives are found...
-      // if (executivesData.length < 5) {
-      //   const rawLeads = await queryCrustAPI(company_name);
-      //   let rawLeadsFound = await this.deDupeAPI(
-      //     company_name,
-      //     rawLeads,
-      //     executivesData
-      //   );
-      //   const leadsString = rawLeadsFound
-      //     .map(
-      //       (lead) =>
-      //         `Name: ${lead.name}\nTitle: ${lead.title}\nLinkedIn: ${lead.linkedin}\n`
-      //     )
-      //     .join("\n");
-      //   const filteredRawParaformLeads = await queryChat(
-      //     leadsString,
-      //     "crust",
-      //     company_name
-      //   );
-      //   Logger.info(
-      //     `Pushing ${filteredRawParaformLeads.length} leads from Paraform...`
-      //   );
-      //   executivesData.push(...filteredRawParaformLeads);
-      // }
+      if (executivesData.length < 5) {
+        const rawLeads = await queryCrustAPI(company_name);
+        let rawLeadsFound = await this.deDupeAPI(
+          company_name,
+          rawLeads,
+          executivesData
+        );
+        const leadsString = rawLeadsFound
+          .map(
+            (lead) =>
+              `Name: ${lead.name}\nTitle: ${lead.title}\nLinkedIn: ${lead.linkedin}\n`
+          )
+          .join("\n");
+        const filteredRawParaformLeads = await queryChat(
+          leadsString,
+          "crust",
+          company_name
+        );
+        Logger.info(
+          `Pushing ${filteredRawParaformLeads.length} leads from Paraform...`
+        );
+        executivesData.push(...filteredRawParaformLeads);
+      }
 
       // STEP #3: Hit APOLLO API in case not enough executives are still not found...
       // if (executivesData.length < 5) {

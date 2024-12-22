@@ -26,14 +26,13 @@ export async function cleanContentforLLM(
     noStopWords = removeStopWords(content);
   }
 
-  // Split into chunks of 6000 CHARACTERS & Return top 2 sections
-  if (noStopWords.length > MAX_CHARS) {
-    Logger.info(`Content too long, trying Puppeteer...`);
-    content = await puppeteerWebpageExtraction(url);
-  }
+  // // Split into chunks of 6000 CHARACTERS & Return top 2 sections
+  // if (noStopWords.length > MAX_CHARS) {
+  //   Logger.info(`Content too long, trying Puppeteer...`);
+  //   content = await puppeteerWebpageExtraction(url);
+  // }
 
   if (content.trim().length < 5000) {
-    Logger.info(`Puppeteer empty...`);
     content += extractTopTwoSections(content);
   }
 
@@ -215,6 +214,7 @@ export async function scrapeURLs(
         Logger.info(`No content extracted from ${url}, trying Puppeteer...`);
         cleanedContent = await puppeteerWebpageExtraction(url);
       }
+
       const executives = await queryChat(
         cleanedContent,
         "webpage",
